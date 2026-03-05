@@ -6,3 +6,5 @@
 | **AI Engine** | DeepSeek-V3 |
 | **Tooling** | **Trae** (Vibe Coding / AI-Driven Development) |
 | **Persistence**| Client-side State Syncing & LocalStorage |
+
+版本V 1.0 26/3/5 修复了一些已知问题。
