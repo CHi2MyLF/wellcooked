@@ -1,5 +1,4 @@
-a full-stack AIGC application that transforms fragmented ingredients into structured culinary guides. 
-It focuses on solving the "uncertainty" of LLMs through rigorous Prompt Engineering and a resilient system architecture, all wrapped in a warm, human-centric visual language.
+一个Vibe coding 全栈开发的智慧菜单项目，仍在不断迭代当中
 | Category | Technology |
 | :--- | :--- |
 | **Frontend** | React, Tailwind CSS |
