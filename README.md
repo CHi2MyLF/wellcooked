@@ -8,3 +8,9 @@
 | **Persistence**| Client-side State Syncing & LocalStorage |
 
 版本V 1.0 26/3/5 修复了一些已知问题。
+
+版本V 1.1 26/3/9 修复了一些已知问题。
+
+版本V 2.0 26/3/9 修复了一些已知问题。
+
+版本V 2.1 26/3/9 修复了一些已知问题。
