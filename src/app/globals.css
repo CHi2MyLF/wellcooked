@@ -1,0 +1,275 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F5F7FA;
+  --foreground: #333333;
+  --primary: #27AE60;
+  --secondary: #FFFFFF;
+  --accent: #50E3C2;
+  --dark: #333333;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'PingFang SC', 'Helvetica Neue', 'Arial', 'sans-serif';
+}
+
+.font-serif {
+  font-family: 'PingFang SC', 'Helvetica Neue', 'Arial', 'sans-serif';
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+.retro-card {
+  background: var(--secondary);
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.retro-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.retro-input {
+  background: var(--secondary);
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.retro-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.retro-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.retro-button:hover {
+  background: #229954;
+}
+
+.step-card {
+  background: var(--secondary);
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+  border: 2px solid var(--primary);
+  background: var(--secondary);
+  color: var(--primary);
+  border-radius: 50%;
+}
+
+/* 烹饪动画 */
+.cooking-animation {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.pan {
+  position: relative;
+  width: 80px;
+  height: 35px;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  border-radius: 20px 20px 5px 5px;
+  animation: panShake 1s ease-in-out infinite;
+  margin-top: 20px;
+  transition: transform 0.3s ease;
+}
+
+.pan::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(135deg, #357ABD 0%, #2A64A8 100%);
+  border-radius: 0 0 5px 5px;
+}
+
+.pan-handle {
+  position: absolute;
+  right: -25px;
+  top: 10px;
+  width: 25px;
+  height: 12px;
+  background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
+  border-radius: 0 5px 5px 0;
+  transition: transform 0.3s ease;
+}
+
+.food {
+  position: absolute;
+  left: 10px;
+  top: -15px;
+  width: 60px;
+  height: 22px;
+  background: linear-gradient(135deg, #50E3C2 0%, #3DD1B4 100%);
+  border-radius: 5px;
+  animation: foodFlip 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.steam {
+  position: absolute;
+  left: 20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.steam-line {
+  position: absolute;
+  width: 4px;
+  height: 15px;
+  background: rgba(74, 144, 226, 0.3);
+  border-radius: 2px;
+  animation: steamRise 1.5s ease-in-out infinite;
+}
+
+.steam-line:nth-child(1) {
+  left: 5px;
+  animation-delay: 0s;
+}
+
+.steam-line:nth-child(2) {
+  left: 13px;
+  animation-delay: 0.3s;
+}
+
+.steam-line:nth-child(3) {
+  left: 21px;
+  animation-delay: 0.6s;
+}
+
+.steam-line:nth-child(4) {
+  left: 29px;
+  animation-delay: 0.9s;
+}
+
+.steam-line:nth-child(5) {
+  left: 37px;
+  animation-delay: 1.2s;
+}
+
+.steam-line:nth-child(6) {
+  left: 17px;
+  animation-delay: 0.45s;
+}
+
+.steam-line:nth-child(7) {
+  left: 25px;
+  animation-delay: 0.75s;
+}
+
+@keyframes panShake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+
+@keyframes foodFlip {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(180deg) translateY(-5px);
+  }
+}
+
+@keyframes steamRise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* 音波动画 */
+.wave-animation {
+  height: 20px;
+}
+
+.wave-bar {
+  width: 3px;
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 2px;
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.wave-bar:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.wave-bar:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.wave-bar:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+.wave-bar:nth-child(5) {
+  animation-delay: 0.8s;
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
