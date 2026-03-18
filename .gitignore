@@ -39,3 +39,7 @@ lerna-debug.log*
 # Server files
 server.js
 
+# Codex local logs
+.codex-backend.log
+.codex-frontend.log
+.codex-*.log
