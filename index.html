@@ -1807,6 +1807,8 @@
       backButton.classList.add('hidden');
     };
 
+    const API_BASE_URL = (window.RECIPE_API_BASE_URL || localStorage.getItem('RECIPE_API_BASE_URL') || 'http://localhost:3101').replace(/\/$/, '');
+
     generateBtn.addEventListener('click', async () => {
       let ingredients = ingredientsInput.value.trim();
       if (!ingredients) {
@@ -1983,7 +1985,7 @@
         // 获取常备食材库
         const stapleIngredients = getStapleIngredients();
         
-        const response = await fetch('http://localhost:3001/api/generate-recipe', {
+        const response = await fetch(`${API_BASE_URL}/api/generate-recipe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

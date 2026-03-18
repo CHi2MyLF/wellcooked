@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -27,6 +27,20 @@ interface PredefinedRecipe {
   tips: string[];
   image: string;
 }
+
+const MAX_SAVED_RECIPES = 10;
+
+const normalizeSavedRecipes = (recipes: Recipe[]) => {
+  const parseCreatedAt = (value?: string) => {
+    if (!value) return 0;
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  return [...recipes]
+    .sort((a, b) => parseCreatedAt(b.createdAt) - parseCreatedAt(a.createdAt))
+    .slice(0, MAX_SAVED_RECIPES);
+};
 
 export default function Home() {
   // 预设菜谱数据
@@ -186,8 +200,6 @@ export default function Home() {
   const [showStapleIngredientsModal, setShowStapleIngredientsModal] = useState(false);
   const [editingStapleIngredients, setEditingStapleIngredients] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('generate');
-  const [comment, setComment] = useState('');
-  const [rating, setRating] = useState(0);
   const [todayRecommendation, setTodayRecommendation] = useState<PredefinedRecipe>(
     predefinedRecipes.find(recipe => recipe.id === 5) || predefinedRecipes[0]
   );
@@ -241,24 +253,26 @@ export default function Home() {
   useEffect(() => {
     const saved = localStorage.getItem('savedRecipes');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      // 去重：基于菜谱名称去重
-      const uniqueRecipes = parsed.reduce((acc: Recipe[], current: Recipe) => {
-        const exists = acc.find(rec => rec.name === current.name);
-        if (!exists) {
-          acc.push(current);
-        }
-        return acc;
-      }, []);
-      setSavedRecipes(uniqueRecipes);
+      try {
+        const parsed = JSON.parse(saved);
+        // 去重：基于菜谱名称去重
+        const uniqueRecipes = parsed.reduce((acc: Recipe[], current: Recipe) => {
+          const exists = acc.find(rec => rec.name === current.name);
+          if (!exists) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        setSavedRecipes(normalizeSavedRecipes(uniqueRecipes));
+      } catch {
+        setSavedRecipes([]);
+      }
     }
   }, []);
 
   // 保存菜谱到本地存储
   useEffect(() => {
-    if (savedRecipes.length > 0) {
-      localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-    }
+    localStorage.setItem('savedRecipes', JSON.stringify(normalizeSavedRecipes(savedRecipes)));
   }, [savedRecipes]);
 
   // 语音输入功能
@@ -332,11 +346,21 @@ export default function Home() {
     }
   };
 
+  type VoicePointerEvent = React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>;
+
+  const getPointerClientX = (e: VoicePointerEvent) => {
+    if ('touches' in e) {
+      const touch = e.touches[0] ?? e.changedTouches[0];
+      return touch?.clientX ?? 0;
+    }
+    return e.clientX;
+  };
+
   // 按住说话开始
-  const handleVoiceStart = (e: React.MouseEvent) => {
+  const handleVoiceStart = (e: VoicePointerEvent) => {
     setIsMouseOver(true);
     setIsDragging(true);
-    setStartX(e.clientX);
+    setStartX(getPointerClientX(e));
     handleVoiceInput();
   };
 
@@ -364,9 +388,9 @@ export default function Home() {
   };
 
   // 松开结束
-  const handleVoiceEnd = (e: React.MouseEvent) => {
+  const handleVoiceEnd = (e: VoicePointerEvent) => {
     if (isDragging && isRecording) {
-      const currentX = e.clientX;
+      const currentX = getPointerClientX(e);
       const diffX = currentX - startX;
       
       // 向左拖动超过20px，取消录音
@@ -476,10 +500,10 @@ export default function Home() {
         if (existingRecipe) {
           // 如果已存在，不重复保存，但更新当前显示的菜谱为已保存的版本
           setRecipe(existingRecipe);
-          return prev;
+          return normalizeSavedRecipes(prev);
         }
         // 如果不存在，添加新菜谱
-        return [newRecipe, ...prev];
+        return normalizeSavedRecipes([newRecipe, ...prev]);
       });
     } catch (error) {
       console.error('生成菜谱失败:', error);
@@ -512,11 +536,11 @@ export default function Home() {
       if (existingRecipe) {
         // 如果已存在，直接显示已保存的版本
         setRecipe(existingRecipe);
-        return prev;
+        return normalizeSavedRecipes(prev);
       }
       // 如果不存在，添加新菜谱并显示
       setRecipe(newRecipe);
-      return [newRecipe, ...prev];
+      return normalizeSavedRecipes([newRecipe, ...prev]);
     });
   };
 
@@ -593,29 +617,22 @@ export default function Home() {
       }
       return rec;
     }));
+    if (recipe && recipe.id === recipeId) {
+      setRecipe({ ...recipe, isWantToCook: !recipe.isWantToCook });
+    }
   };
 
   // 标记做过
   const toggleCooked = (recipeId: string) => {
-    const rec = savedRecipes.find(r => r.id === recipeId);
+    const rec = savedRecipes.find(r => r.id === recipeId) || (recipe?.id === recipeId ? recipe : undefined);
     if (rec && !rec.isCooked) {
-      setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: true } : r));
       setRatingModal({ recipeId, tempRating: rec.rating || 0, tempComment: rec.comment || '' });
-    } else {
-      setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: false } : r));
+      return;
     }
-  };
-
-  // 保存评分和评语
-  const saveRatingAndComment = (recipeId: string) => {
-    setSavedRecipes(prev => prev.map(rec => {
-      if (rec.id === recipeId) {
-        return { ...rec, rating, comment };
-      }
-      return rec;
-    }));
-    setRating(0);
-    setComment('');
+    setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: false } : r));
+    if (recipe && recipe.id === recipeId) {
+      setRecipe({ ...recipe, isCooked: false });
+    }
   };
 
   // 查看保存的菜谱详情
@@ -697,7 +714,7 @@ export default function Home() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  想做
+                  {recipe.isWantToCook ? '已想做' : '想做'}
                 </button>
                 <button
                   onClick={() => toggleCooked(recipe.id)}
@@ -706,9 +723,15 @@ export default function Home() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  做过
+                  {recipe.isCooked ? '已做过' : '做过'}
                 </button>
               </div>
+              {(recipe.isWantToCook || recipe.isCooked) && (
+                <div className="mt-3 text-sm text-primary">
+                  {recipe.isWantToCook && <span className="mr-4">已标记想做</span>}
+                  {recipe.isCooked && <span>已标记做过</span>}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -803,37 +826,7 @@ export default function Home() {
                     </div>
                   )}
                   
-                  {/* 常备食材库 */}
-                  <div className="mb-4 mt-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-medium text-dark">常备食材库</h3>
-                      <button 
-                        onClick={openStapleIngredientsModal}
-                        className="text-sm text-primary hover:underline"
-                      >
-                        编辑
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {stapleIngredients.map((ingredient, index) => (
-                      <span key={index} className="px-3 py-1 bg-light border border-dark rounded-full text-sm">
-                        {ingredient}
-                      </span>
-                    ))}
-                    </div>
-                  </div>
                   
-                  {/* 分类标签 */}
-                  <div className="mb-6">
-                    <div className="flex flex-wrap gap-3">
-                      <span onClick={() => handleCategoryClick('all')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'all' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>全部</span>
-                      <span onClick={() => handleCategoryClick('popular')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'popular' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>热门菜谱</span>
-                      <span onClick={() => handleCategoryClick('quick')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'quick' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>快手菜</span>
-                      <span onClick={() => handleCategoryClick('home')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'home' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>家常菜</span>
-                      <span onClick={() => handleCategoryClick('vegetarian')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'vegetarian' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>素食</span>
-                      <span onClick={() => handleCategoryClick('meat')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'meat' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>肉类</span>
-                    </div>
-                  </div>
                 </div>
                 
                 {/* 今日推荐 */}
@@ -861,6 +854,17 @@ export default function Home() {
                 {/* 每日精选食材推荐区 */}
                 <div className="mb-8">
                   <h3 className="text-xl font-bold text-dark mb-4 font-serif">每日精选食材</h3>
+{/* 分类标签 */}
+                  <div className="mb-6">
+                    <div className="flex flex-wrap gap-3">
+                      <span onClick={() => handleCategoryClick('all')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'all' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>全部</span>
+                      <span onClick={() => handleCategoryClick('popular')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'popular' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>热门菜谱</span>
+                      <span onClick={() => handleCategoryClick('quick')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'quick' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>快手菜</span>
+                      <span onClick={() => handleCategoryClick('home')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'home' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>家常菜</span>
+                      <span onClick={() => handleCategoryClick('vegetarian')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'vegetarian' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>素食</span>
+                      <span onClick={() => handleCategoryClick('meat')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'meat' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>肉类</span>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     {filteredRecipes.map((recipe, index) => {
                       const cardHeight = 300;
@@ -947,45 +951,6 @@ export default function Home() {
                           <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.time}</span>
                           <span className="px-2 py-1 border border-dark text-xs rounded">主食材：{savedRecipe.mainIngredient}</span>
                         </div>
-                        {savedRecipe.isCooked && (
-                          <div className="mb-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium">评分：</span>
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <svg
-                                    key={star}
-                                    onClick={() => setRating(star)}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`h-4 w-4 cursor-pointer ${star <= (savedRecipe.rating || 0) ? 'text-primary' : 'text-gray-300'}`}
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                              </div>
-                            </div>
-                            {savedRecipe.comment && (
-                              <p className="text-sm text-gray-600 mb-2">评语：{savedRecipe.comment}</p>
-                            )}
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                placeholder="写下你的评语..."
-                                className="flex-1 retro-input rounded-md px-3 py-2 text-sm"
-                              />
-                              <button
-                                onClick={() => saveRatingAndComment(savedRecipe.id)}
-                                className="px-3 py-2 retro-button rounded-md text-sm"
-                              >
-                                保存
-                              </button>
-                            </div>
-                          </div>
-                        )}
                         {!isSelectMode && <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-500">{new Date(savedRecipe.createdAt).toLocaleString()}</span>
                           <button
@@ -1006,6 +971,26 @@ export default function Home() {
             {activeTab === 'profile' && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-dark mb-4 font-serif">我的</h3>
+
+                {/* 常备食材库 */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-lg font-medium">常备食材库</h4>
+                    <button
+                      onClick={openStapleIngredientsModal}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      编辑
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {stapleIngredients.map((ingredient, index) => (
+                      <span key={index} className="px-3 py-1 bg-light border border-dark rounded-full text-sm">
+                        {ingredient}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 
                 {/* 菜谱记录 */}
                 <div className="mb-8">
@@ -1053,45 +1038,6 @@ export default function Home() {
                           <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.time}</span>
                           <span className="px-2 py-1 border border-dark text-xs rounded">主食材：{savedRecipe.mainIngredient}</span>
                         </div>
-                        {savedRecipe.isCooked && (
-                          <div className="mb-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium">评分：</span>
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <svg
-                                    key={star}
-                                    onClick={() => setRating(star)}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`h-4 w-4 cursor-pointer ${star <= (savedRecipe.rating || 0) ? 'text-primary' : 'text-gray-300'}`}
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                              </div>
-                            </div>
-                            {savedRecipe.comment && (
-                              <p className="text-sm text-gray-600 mb-2">评语：{savedRecipe.comment}</p>
-                            )}
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                placeholder="写下你的评语..."
-                                className="flex-1 retro-input rounded-md px-3 py-2 text-sm"
-                              />
-                              <button
-                                onClick={() => saveRatingAndComment(savedRecipe.id)}
-                                className="px-3 py-2 retro-button rounded-md text-sm"
-                              >
-                                保存
-                              </button>
-                            </div>
-                          </div>
-                        )}
                         {!isSelectMode && <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-500">{new Date(savedRecipe.createdAt).toLocaleString()}</span>
                           <button
@@ -1216,8 +1162,11 @@ export default function Home() {
                 <button
                   onClick={() => {
                     setSavedRecipes(prev => prev.map(r =>
-                      r.id === ratingModal.recipeId ? { ...r, rating: ratingModal.tempRating, comment: ratingModal.tempComment } : r
+                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, rating: ratingModal.tempRating, comment: ratingModal.tempComment } : r
                     ));
+                    if (recipe && recipe.id === ratingModal.recipeId) {
+                      setRecipe({ ...recipe, isCooked: true, rating: ratingModal.tempRating, comment: ratingModal.tempComment });
+                    }
                     setRatingModal(null);
                   }}
                   className="flex-1 py-2 retro-button rounded-md"
@@ -1225,7 +1174,15 @@ export default function Home() {
                   保存
                 </button>
                 <button
-                  onClick={() => setRatingModal(null)}
+                  onClick={() => {
+                    setSavedRecipes(prev => prev.map(r =>
+                      r.id === ratingModal.recipeId ? { ...r, isCooked: true } : r
+                    ));
+                    if (recipe && recipe.id === ratingModal.recipeId) {
+                      setRecipe({ ...recipe, isCooked: true });
+                    }
+                    setRatingModal(null);
+                  }}
                   className="flex-1 py-2 border border-dark rounded-md hover:bg-gray-100"
                 >
                   跳过
@@ -1293,12 +1250,6 @@ export default function Home() {
                   className="flex-1 py-2 retro-button rounded-md"
                 >
                   保存
-                </button>
-                <button
-                  onClick={() => setShowStapleIngredientsModal(false)}
-                  className="px-4 py-2 border border-dark rounded-md hover:bg-gray-100"
-                >
-                  取消
                 </button>
               </div>
             </div>
