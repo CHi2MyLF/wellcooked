@@ -1,14 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const INVALID_INGREDIENT_TOKENS = new Set(['null', 'undefined', 'none', 'nil', 'nan', '0']);
+const LOCATION_LIKE_INPUTS = new Set([
+  '中国', '美国', '英国', '法国', '德国', '意大利', '西班牙', '日本', '韩国',
+  '俄罗斯', '印度', '泰国', '越南', '新加坡', '澳大利亚', '加拿大', '巴西', '墨西哥'
+]);
+
+function validateMainIngredient(rawValue: unknown): { ok: true; ingredient: string } | { ok: false; error: string } {
+  const ingredient = String(rawValue ?? '').trim();
+  if (!ingredient) {
+    return { ok: false, error: '请提供主食材' };
+  }
+
+  const lowered = ingredient.toLowerCase();
+  if (INVALID_INGREDIENT_TOKENS.has(lowered) || /^\d+$/.test(ingredient)) {
+    return { ok: false, error: '请输入具体食材，不能只填 0、null 或纯数字' };
+  }
+
+  if (LOCATION_LIKE_INPUTS.has(ingredient)) {
+    return { ok: false, error: '请输入食材名称（如：鸡蛋、西红柿）' };
+  }
+
+  return { ok: true, ingredient };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const ingredients = (body?.ingredients || '').toString().trim();
-    const stapleIngredients = Array.isArray(body?.stapleIngredients) ? body.stapleIngredients : [];
-
-    if (!ingredients) {
-      return NextResponse.json({ error: '请提供主食材' }, { status: 400 });
+    const validation = validateMainIngredient(body?.ingredients);
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const ingredients = validation.ingredient;
+    const stapleIngredients = Array.isArray(body?.stapleIngredients) ? body.stapleIngredients : [];
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {

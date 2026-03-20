@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -40,6 +40,28 @@ const normalizeSavedRecipes = (recipes: Recipe[]) => {
   return [...recipes]
     .sort((a, b) => parseCreatedAt(b.createdAt) - parseCreatedAt(a.createdAt))
     .slice(0, MAX_SAVED_RECIPES);
+};
+
+const INVALID_INGREDIENT_TOKENS = new Set(['null', 'undefined', 'none', 'nil', 'nan', '0']);
+const LOCATION_LIKE_INPUTS = new Set([
+  '中国', '美国', '英国', '法国', '德国', '意大利', '西班牙', '日本', '韩国',
+  '俄罗斯', '印度', '泰国', '越南', '新加坡', '澳大利亚', '加拿大', '巴西', '墨西哥'
+]);
+
+const getIngredientValidationError = (value: string) => {
+  const input = value.trim();
+  if (!input) return '请输入主食材';
+
+  const lowered = input.toLowerCase();
+  if (INVALID_INGREDIENT_TOKENS.has(lowered) || /^\d+$/.test(input)) {
+    return '请输入具体食材，不能只填 0、null 或纯数字';
+  }
+
+  if (LOCATION_LIKE_INPUTS.has(input)) {
+    return '请输入食材名称（如：鸡蛋、西红柿）';
+  }
+
+  return '';
 };
 
 export default function Home() {
@@ -421,8 +443,10 @@ export default function Home() {
 
   // 生成菜谱
   const generateRecipe = async () => {
-    if (!mainIngredient.trim()) {
-      alert('请输入主食材');
+    const ingredientInput = mainIngredient.trim();
+    const validationError = getIngredientValidationError(ingredientInput);
+    if (validationError) {
+      alert(validationError);
       return;
     }
 
@@ -441,13 +465,13 @@ export default function Home() {
       const controller = new AbortController();
       const signal = controller.signal;
       
-      const response = await fetch('http://localhost:3001/api/generate-recipe', {
+      const response = await fetch('http://localhost:3101/api/generate-recipe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ingredients: mainIngredient,
+          ingredients: ingredientInput,
           stapleIngredients: stapleIngredients
         }),
         signal: signal
@@ -487,7 +511,7 @@ export default function Home() {
         time: parsedRecipe.cookingTime,
         steps: parsedRecipe.steps,
         tips: parsedRecipe.tips || [],
-        mainIngredient: mainIngredient,
+        mainIngredient: ingredientInput,
         createdAt: new Date().toISOString()
       };
 
