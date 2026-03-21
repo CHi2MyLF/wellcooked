@@ -220,8 +220,10 @@ export default function Home() {
   const [filteredRecipes, setFilteredRecipes] = useState(predefinedRecipes);
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
   const [showStapleIngredientsModal, setShowStapleIngredientsModal] = useState(false);
+  const [showSearchHistoryModal, setShowSearchHistoryModal] = useState(false);
   const [editingStapleIngredients, setEditingStapleIngredients] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('generate');
+  const [profileSubTab, setProfileSubTab] = useState<'cooked' | 'want'>('cooked');
   const [todayRecommendation, setTodayRecommendation] = useState<PredefinedRecipe>(
     predefinedRecipes.find(recipe => recipe.id === 5) || predefinedRecipes[0]
   );
@@ -674,6 +676,11 @@ export default function Home() {
     }
   };
 
+  const cookedRecipes = savedRecipes.filter(recipe => recipe.isCooked);
+  const wantToCookRecipes = savedRecipes.filter(recipe => recipe.isWantToCook);
+  const profileRecipes = profileSubTab === 'cooked' ? cookedRecipes : wantToCookRecipes;
+  const recentRecipes = savedRecipes.slice(0, 10);
+
   return (
     <div className="min-h-screen bg-secondary p-4 md:p-8 relative">
       <div className="max-w-3xl mx-auto relative">
@@ -765,8 +772,12 @@ export default function Home() {
           <>
             {/* 标题 */}
             <header className="text-center my-8">
-              <h1 className="text-4xl font-bold text-dark font-serif mb-2">智能后厨</h1>
-              <p className="text-gray-600">根据食材生成美味菜谱</p>
+              <h1 className="text-4xl font-bold text-dark font-serif mb-2">
+                {activeTab === 'profile' ? '我的' : '智能后厨'}
+              </h1>
+              {activeTab !== 'profile' && (
+                <p className="text-gray-600">根据食材生成美味菜谱</p>
+              )}
             </header>
 
             {/* 生成菜谱页面 */}
@@ -993,158 +1004,87 @@ export default function Home() {
 
             {/* 我的页面 */}
             {activeTab === 'profile' && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-dark mb-4 font-serif">我的</h3>
+              <div className="mb-8 max-w-md mx-auto">
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="px-4 pt-5 pb-4">
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="flex flex-col items-center text-center text-dark">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 11V8a2 2 0 114 0v3M11 11V7a2 2 0 114 0v4M15 11V9a2 2 0 114 0v6.5a3.5 3.5 0 01-3.5 3.5h-6A4.5 4.5 0 015 14.5V11a2 2 0 114 0z" />
+                        </svg>
+                        <span className="text-sm font-semibold">钱包/卡券</span>
+                        <span className="text-xs text-gray-400 mt-1">¥0.00</span>
+                      </div>
+                      <div className="flex flex-col items-center text-center text-dark">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 3h10a1 1 0 011 1v16l-3-1.5L12 20l-3-1.5L6 20V4a1 1 0 011-1z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 8h6M9 12h6" />
+                        </svg>
+                        <span className="text-sm font-semibold">买卖记录</span>
+                        <span className="text-[10px] bg-[#d66b4a] text-white rounded-full px-2 mt-1">NEW</span>
+                      </div>
+                      <button
+                        onClick={() => setShowSearchHistoryModal(true)}
+                        className="flex flex-col items-center text-center text-dark"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" />
+                          <circle cx="12" cy="12" r="2.5" strokeWidth="1.8" />
+                        </svg>
+                        <span className="text-sm font-semibold">搜索记录</span>
+                      </button>
+                      <button
+                        onClick={openStapleIngredientsModal}
+                        className="flex flex-col items-center text-center text-dark"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 5c-7 0-12 5-12 12 7 0 12-5 12-12z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 16c3-3 6-5 10-7" />
+                        </svg>
+                        <span className="text-sm font-semibold">常备食材</span>
+                      </button>
+                    </div>
+                  </div>
 
-                {/* 常备食材库 */}
-                <div className="mb-8">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-lg font-medium">常备食材库</h4>
-                    <button
-                      onClick={openStapleIngredientsModal}
-                      className="text-sm text-primary hover:underline"
-                    >
-                      编辑
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {stapleIngredients.map((ingredient, index) => (
-                      <span key={index} className="px-3 py-1 bg-light border border-dark rounded-full text-sm">
-                        {ingredient}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* 菜谱记录 */}
-                <div className="mb-8">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-lg font-medium">菜谱记录</h4>
-                    {savedRecipes.length > 0 && (
-                      <div className="flex gap-2">
-                        {isSelectMode && (
-                          <button onClick={deleteSelected} className="px-3 py-1 bg-red-500 text-white rounded-full text-sm">
-                            删除选中({selectedRecipes.size})
+                  <div className="border-t border-gray-200 px-4 pt-4">
+                    <div className="flex gap-8 border-b border-gray-200">
+                      <button
+                        onClick={() => setProfileSubTab('cooked')}
+                        className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'cooked' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
+                      >
+                        我做过的
+                      </button>
+                      <button
+                        onClick={() => setProfileSubTab('want')}
+                        className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'want' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
+                      >
+                        我想做的
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between py-3">
+                      <p className="text-[28px] font-bold text-dark leading-none">
+                        {profileRecipes.length}
+                        <span className="text-sm text-gray-600 ml-1">道菜</span>
+                      </p>
+                      <div className="text-sm text-gray-500">添加想做 | 管理</div>
+                    </div>
+
+                    {profileRecipes.length === 0 ? (
+                      <div className="rounded-xl py-10 text-center text-gray-400 bg-gray-50 mb-4">
+                        {profileSubTab === 'cooked' ? '还没有标记为我做过的菜谱' : '还没有标记为我想做的菜谱'}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3 pb-4">
+                        {profileRecipes.map((item, index) => (
+                          <button key={item.id} onClick={() => viewSavedRecipe(item)} className="text-left">
+                            <div className={`h-32 rounded-xl border border-gray-200 ${index % 3 === 0 ? 'bg-[#f2ddd3]' : index % 3 === 1 ? 'bg-[#d9e2d3]' : 'bg-[#d4dceb]'}`} />
+                            <p className="text-base text-dark mt-2 truncate">{item.name}</p>
                           </button>
-                        )}
-                        <button
-                          onClick={() => { setIsSelectMode(v => !v); setSelectedRecipes(new Set()); }}
-                          className="px-3 py-1 border border-dark rounded-full text-sm"
-                        >
-                          {isSelectMode ? '取消' : '删除'}
-                        </button>
+                        ))}
                       </div>
                     )}
                   </div>
-                  {savedRecipes.length === 0 ? (
-                    <div className="retro-card rounded-lg p-6 text-center">
-                      <p className="text-gray-600">还没有保存的菜谱，生成一个菜谱试试吧！</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {savedRecipes.map((savedRecipe) => (
-                      <div key={savedRecipe.id} className={`retro-card rounded-lg p-4 transition-all duration-300 hover:shadow-md ${isSelectMode && selectedRecipes.has(savedRecipe.id) ? 'ring-2 ring-red-400' : ''}`}
-                        onClick={isSelectMode ? () => toggleSelectRecipe(savedRecipe.id) : undefined}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-2">
-                            {isSelectMode && (
-                              <input type="checkbox" readOnly checked={selectedRecipes.has(savedRecipe.id)} className="w-4 h-4" />
-                            )}
-                            <h5 className="font-serif font-bold">{savedRecipe.name}</h5>
-                          </div>
-                          {!isSelectMode && savedRecipe.isCooked && (
-                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">已做过</span>
-                          )}
-                        </div>
-                        <div className="flex gap-4 mb-3">
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.difficulty}</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.time}</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">主食材：{savedRecipe.mainIngredient}</span>
-                        </div>
-                        {!isSelectMode && <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-500">{new Date(savedRecipe.createdAt).toLocaleString()}</span>
-                          <button
-                            onClick={() => viewSavedRecipe(savedRecipe)}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            查看详情
-                          </button>
-                        </div>}
-                      </div>
-                    ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* 想做的菜谱 */}
-                <div className="mb-8">
-                  <h4 className="text-lg font-medium mb-3">想做的菜谱</h4>
-                  {savedRecipes.filter(recipe => recipe.isWantToCook).length === 0 ? (
-                    <div className="retro-card rounded-lg p-6 text-center">
-                      <p className="text-gray-600">还没有标记为想做的菜谱</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {savedRecipes.filter(recipe => recipe.isWantToCook).map((recipe) => (
-                        <div key={recipe.id} className="retro-card rounded-lg p-4 transition-all duration-300 hover:shadow-md">
-                          <div className="flex justify-between items-center">
-                            <h5 className="font-serif font-bold">{recipe.name}</h5>
-                            <button
-                              onClick={() => viewSavedRecipe(recipe)}
-                              className="text-sm text-primary hover:underline"
-                            >
-                              查看
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                {/* 做过的菜谱 */}
-                <div>
-                  <h4 className="text-lg font-medium mb-3">做过的菜谱</h4>
-                  {savedRecipes.filter(recipe => recipe.isCooked).length === 0 ? (
-                    <div className="retro-card rounded-lg p-6 text-center">
-                      <p className="text-gray-600">还没有标记为做过的菜谱</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {savedRecipes.filter(recipe => recipe.isCooked).map((recipe) => (
-                      <div key={recipe.id} className="retro-card rounded-lg p-4 transition-all duration-300 hover:shadow-md">
-                        <div className="flex justify-between items-start">
-                          <h5 className="font-serif font-bold">{recipe.name}</h5>
-                          <div className="flex items-center">
-                            <div className="flex mr-3">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                              <svg
-                                key={star}
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={`h-4 w-4 ${star <= (recipe.rating || 0) ? 'text-primary' : 'text-gray-300'}`}
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
-                            </div>
-                            <button
-                              onClick={() => viewSavedRecipe(recipe)}
-                              className="text-sm text-primary hover:underline"
-                            >
-                              查看
-                            </button>
-                          </div>
-                        </div>
-                        {recipe.comment && (
-                          <p className="text-sm text-gray-600 mt-2">{recipe.comment}</p>
-                        )}
-                      </div>
-                    ))}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -1232,6 +1172,55 @@ export default function Home() {
               >
                 确定
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* 搜索记录模态框 */}
+        {showSearchHistoryModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-light p-6 rounded-lg max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-dark font-serif">搜索记录</h3>
+                <button
+                  onClick={() => setShowSearchHistoryModal(false)}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  关闭
+                </button>
+              </div>
+              {recentRecipes.length === 0 ? (
+                <div className="rounded-xl py-8 text-center text-gray-500 bg-gray-50">
+                  还没有最近的菜谱记录
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentRecipes.map((item) => (
+                    <div key={item.id} className="rounded-xl border border-gray-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-dark">{item.name}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(item.createdAt).toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            主食材：{item.mainIngredient}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setShowSearchHistoryModal(false);
+                            viewSavedRecipe(item);
+                          }}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          查看详情
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1339,3 +1328,4 @@ export default function Home() {
     </div>
   );
 }
+
