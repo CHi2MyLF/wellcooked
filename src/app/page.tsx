@@ -227,7 +227,6 @@ export default function Home() {
   const [todayRecommendation, setTodayRecommendation] = useState<PredefinedRecipe>(
     predefinedRecipes.find(recipe => recipe.id === 5) || predefinedRecipes[0]
   );
-  const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [isAnimationClicked, setIsAnimationClicked] = useState(false);
   const [ratingModal, setRatingModal] = useState<{ recipeId: string; tempRating: number; tempComment: string } | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -773,19 +772,19 @@ export default function Home() {
             {/* 标题 */}
             <header className="text-center my-8">
               <h1 className="text-4xl font-bold text-dark font-serif mb-2">
-                {activeTab === 'profile' ? '我的' : '智能后厨'}
+                {activeTab === 'profile' ? '我的' : activeTab === 'community' ? '社区' : '智能后厨'}
               </h1>
-              {activeTab !== 'profile' && (
+              {activeTab === 'generate' && (
                 <p className="text-gray-600">根据食材生成美味菜谱</p>
               )}
             </header>
 
             {/* 生成菜谱页面 */}
             {activeTab === 'generate' && (
-              <div className="mb-8">
+              <div className="mb-8 max-w-md mx-auto space-y-4">
                 {/* 食材输入区域 */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-0 rounded-lg overflow-hidden border border-gray-200">
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
+                  <div className="flex items-center gap-0 rounded-xl overflow-hidden border border-gray-200">
                     <div className="relative flex-1">
                       <input
                         ref={inputRef}
@@ -824,7 +823,7 @@ export default function Home() {
                     <button
                       onClick={generateRecipe}
                       disabled={isLoading}
-                      className={`flex items-center justify-center gap-2 px-6 py-4 retro-button ${isLoading ? 'opacity-70 cursor-not-allowed' : ''} whitespace-nowrap font-medium transition-all duration-300 hover:bg-opacity-90`}
+                      className={`flex items-center justify-center gap-2 px-6 py-4 bg-dark text-white ${isLoading ? 'opacity-70 cursor-not-allowed' : ''} whitespace-nowrap font-medium transition-all duration-300 hover:opacity-90`}
                     >
                       {isLoading ? (
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -865,21 +864,21 @@ export default function Home() {
                 </div>
                 
                 {/* 今日推荐 */}
-                <div className="mb-8">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
+                  <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xl font-bold text-dark font-serif">今日推荐</h3>
                     <span className="text-sm text-primary cursor-pointer hover:underline" onClick={changeTodayRecommendation}>查看更多</span>
                   </div>
-                  <div className="retro-card rounded-lg p-4 mb-4 cursor-pointer" onClick={() => showPredefinedRecipe(todayRecommendation)}>
+                  <div className="rounded-2xl border border-gray-200 p-3 bg-white cursor-pointer" onClick={() => showPredefinedRecipe(todayRecommendation)}>
                     <div className="flex flex-col md:flex-row gap-4">
-                      <img src={todayRecommendation.image} alt={todayRecommendation.name} className="w-full md:w-1/3 h-40 object-cover rounded-md border border-dark" />
+                      <img src={todayRecommendation.image} alt={todayRecommendation.name} className="w-full md:w-1/3 h-40 object-cover rounded-xl border border-gray-200" />
                       <div className="flex-1">
                         <h4 className="font-serif font-bold text-lg mb-2">{todayRecommendation.name}</h4>
                         <p className="text-sm text-gray-600 mb-3">{todayRecommendation.name}是一道美味的中式菜肴，营养丰富，制作简单，是家庭餐桌上的常见选择。</p>
                         <div className="flex gap-2">
                           <span className="px-2 py-1 bg-primary text-white text-xs rounded">热门</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{todayRecommendation.difficulty}</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{todayRecommendation.cookingTime}</span>
+                          <span className="px-2 py-1 border border-gray-300 text-xs rounded">{todayRecommendation.difficulty}</span>
+                          <span className="px-2 py-1 border border-gray-300 text-xs rounded">{todayRecommendation.cookingTime}</span>
                         </div>
                       </div>
                     </div>
@@ -887,17 +886,17 @@ export default function Home() {
                 </div>
 
                 {/* 每日精选食材推荐区 */}
-                <div className="mb-8">
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
                   <h3 className="text-xl font-bold text-dark mb-4 font-serif">每日精选食材</h3>
 {/* 分类标签 */}
                   <div className="mb-6">
                     <div className="flex flex-wrap gap-3">
-                      <span onClick={() => handleCategoryClick('all')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'all' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>全部</span>
-                      <span onClick={() => handleCategoryClick('popular')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'popular' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>热门菜谱</span>
-                      <span onClick={() => handleCategoryClick('quick')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'quick' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>快手菜</span>
-                      <span onClick={() => handleCategoryClick('home')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'home' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>家常菜</span>
-                      <span onClick={() => handleCategoryClick('vegetarian')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'vegetarian' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>素食</span>
-                      <span onClick={() => handleCategoryClick('meat')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'meat' ? 'bg-primary text-white border-primary' : 'border border-dark'}`}>肉类</span>
+                      <span onClick={() => handleCategoryClick('all')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'all' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>全部</span>
+                      <span onClick={() => handleCategoryClick('popular')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'popular' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>热门菜谱</span>
+                      <span onClick={() => handleCategoryClick('quick')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'quick' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>快手菜</span>
+                      <span onClick={() => handleCategoryClick('home')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'home' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>家常菜</span>
+                      <span onClick={() => handleCategoryClick('vegetarian')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'vegetarian' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>素食</span>
+                      <span onClick={() => handleCategoryClick('meat')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'meat' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>肉类</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -906,16 +905,16 @@ export default function Home() {
                       return (
                         <div 
                           key={recipe.id} 
-                          className="retro-card rounded-lg overflow-hidden cursor-pointer transition-all duration-300"
+                          className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-sm"
                           style={{ height: `${cardHeight}px` }}
                           onClick={() => showPredefinedRecipe(recipe)}
                         >
-                          <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover border-b border-dark" />
+                          <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover border-b border-gray-200" />
                           <div className="p-4 flex flex-col justify-between h-[calc(100%-120px)]">
                             <div>
                               <div className="flex gap-2 mb-2">
                                 <span className="px-2 py-1 bg-primary text-white text-xs rounded">{recipe.difficulty}</span>
-                                <span className="px-2 py-1 border border-dark text-xs rounded">{recipe.cookingTime}</span>
+                                <span className="px-2 py-1 border border-gray-300 text-xs rounded">{recipe.cookingTime}</span>
                               </div>
                               <h4 className="font-serif font-bold text-lg mb-2">{recipe.name}</h4>
                               <p className="text-sm text-gray-600 mb-3">{recipe.ingredients}</p>
@@ -935,6 +934,49 @@ export default function Home() {
                       );
                     })}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* 社区页面 */}
+            {activeTab === 'community' && (
+              <div className="mb-8 max-w-md mx-auto space-y-4">
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-dark font-serif">热门分享</h3>
+                    <span className="text-sm text-gray-500">今日更新</span>
+                  </div>
+                  <div className="space-y-3">
+                    {predefinedRecipes.slice(0, 3).map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => showPredefinedRecipe(item)}
+                        className="w-full text-left rounded-2xl border border-gray-200 p-3 hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex gap-3">
+                          <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-dark truncate">{item.name}</p>
+                            <p className="text-xs text-gray-500 mt-1 truncate">{item.ingredients}</p>
+                            <div className="flex gap-2 mt-2">
+                              <span className="px-2 py-1 text-xs rounded border border-gray-300">{item.difficulty}</span>
+                              <span className="px-2 py-1 text-xs rounded border border-gray-300">{item.cookingTime}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
+                  <h3 className="text-lg font-bold text-dark font-serif mb-3">社区功能</h3>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">发笔记</div>
+                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">看关注</div>
+                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">排行榜</div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-4">更多社区能力正在完善中</p>
                 </div>
               </div>
             )}
@@ -1156,26 +1198,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 社区模态框 */}
-        {showCommunityModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-light p-6 rounded-lg max-w-md w-full text-center">
-              <h3 className="text-xl font-bold text-dark mb-4 font-serif">社区</h3>
-              <p className="text-gray-600 mb-6">暂未开放</p>
-              <button
-                onClick={() => {
-                  document.body.style.paddingRight = '';
-                  document.body.style.overflow = '';
-                  setShowCommunityModal(false);
-                }}
-                className="px-6 py-2 retro-button rounded-md"
-              >
-                确定
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* 搜索记录模态框 */}
         {showSearchHistoryModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1278,7 +1300,6 @@ export default function Home() {
                 setRecipe(null);
                 document.body.style.paddingRight = '';
                 document.body.style.overflow = '';
-                setShowCommunityModal(false);
               }}
               className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'generate' ? 'text-primary' : 'text-gray-600'}`}
             >
@@ -1291,10 +1312,8 @@ export default function Home() {
               onClick={() => {
                 setActiveTab('community');
                 setRecipe(null);
-                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                document.body.style.paddingRight = `${scrollbarWidth}px`;
-                document.body.style.overflow = 'hidden';
-                setShowCommunityModal(true);
+                document.body.style.paddingRight = '';
+                document.body.style.overflow = '';
               }}
               className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'community' ? 'text-primary' : 'text-gray-600'}`}
             >
@@ -1309,7 +1328,6 @@ export default function Home() {
                 setRecipe(null);
                 document.body.style.paddingRight = '';
                 document.body.style.overflow = '';
-                setShowCommunityModal(false);
               }}
               className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'profile' ? 'text-primary' : 'text-gray-600'}`}
             >
