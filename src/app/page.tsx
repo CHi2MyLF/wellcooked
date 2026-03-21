@@ -1,32 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-
-interface Recipe {
-  id: string;
-  name: string;
-  difficulty: string;
-  time: string;
-  steps: string[];
-  tips: string[];
-  mainIngredient: string;
-  createdAt: string;
-  isWantToCook?: boolean;
-  isCooked?: boolean;
-  rating?: number;
-  comment?: string;
-}
-
-interface PredefinedRecipe {
-  id: number;
-  name: string;
-  ingredients: string;
-  difficulty: string;
-  cookingTime: string;
-  steps: string[];
-  tips: string[];
-  image: string;
-}
+import CommunityTab from '@/components/tabs/CommunityTab';
+import GenerateTab from '@/components/tabs/GenerateTab';
+import ProfileTab from '@/components/tabs/ProfileTab';
+import type { PredefinedRecipe, Recipe } from '@/types/recipe';
 
 const MAX_SAVED_RECIPES = 10;
 
@@ -681,16 +659,17 @@ export default function Home() {
   const recentRecipes = savedRecipes.slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-secondary p-4 md:p-8 relative">
-      <div className="max-w-3xl mx-auto relative">
+    <div className="min-h-screen bg-gray-300 p-4 flex items-center justify-center">
+      <div className="w-full max-w-md h-[calc(100vh-2rem)] max-h-[900px] bg-secondary border border-gray-300 rounded-[28px] shadow-xl relative overflow-hidden">
+        <div className="h-full overflow-y-auto px-4 pt-4 pb-24">
 
         {/* 菜谱详情页面 - 优先显示 */}
         {recipe && (
-          <div className="mb-8">
+          <div className="mb-8 max-w-md mx-auto">
             <div className="flex items-center gap-2 mb-6">
               <button 
                 onClick={() => setRecipe(null)}
-                className="flex items-center gap-2 px-4 py-2 rounded-md retro-card transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow transition-all duration-300"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -698,14 +677,14 @@ export default function Home() {
                 <span>返回</span>
               </button>
             </div>
-            <div className="retro-card rounded-lg p-6 transition-all duration-500">
+            <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm p-6 transition-all duration-500">
               <h2 className="text-2xl font-bold text-primary mb-6 font-serif">{recipe.name}</h2>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="border border-dark rounded-md p-3">
+                <div className="border border-gray-200 bg-gray-50 rounded-xl p-3">
                   <p className="text-sm text-gray-600">难度等级</p>
                   <p className="font-medium">{recipe.difficulty}</p>
                 </div>
-                <div className="border border-dark rounded-md p-3">
+                <div className="border border-gray-200 bg-gray-50 rounded-xl p-3">
                   <p className="text-sm text-gray-600">烹饪耗时</p>
                   <p className="font-medium">{recipe.time}</p>
                 </div>
@@ -714,9 +693,9 @@ export default function Home() {
                 <h3 className="text-lg font-medium mb-3 font-serif">详细步骤</h3>
                 <div className="space-y-4">
                   {recipe.steps.map((step, index) => (
-                    <div key={index} className="step-card p-4 rounded-md">
+                    <div key={index} className="p-4 rounded-xl border border-gray-200 bg-white">
                       <div className="flex items-start gap-3">
-                        <div className="step-number rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-medium">
+                        <div className="rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-medium bg-primary text-white">
                           {index + 1}
                         </div>
                         <p className="text-gray-700">{step}</p>
@@ -739,7 +718,7 @@ export default function Home() {
               <div className="flex gap-4">
                 <button
                   onClick={() => toggleWantToCook(recipe.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md ${recipe.isWantToCook ? 'bg-primary text-white' : 'border border-dark'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-colors ${recipe.isWantToCook ? 'bg-primary text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -748,7 +727,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => toggleCooked(recipe.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md ${recipe.isCooked ? 'bg-primary text-white' : 'border border-dark'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-colors ${recipe.isCooked ? 'bg-primary text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -769,366 +748,123 @@ export default function Home() {
         {/* 只有在没有菜谱时才显示内容 */}
         {!recipe && (
           <>
-            {/* 标题 */}
-            <header className="text-center my-8">
-              <h1 className="text-4xl font-bold text-dark font-serif mb-2">
-                {activeTab === 'profile' ? '我的' : activeTab === 'community' ? '社区' : '智能后厨'}
-              </h1>
-              {activeTab === 'generate' && (
-                <p className="text-gray-600">根据食材生成美味菜谱</p>
-              )}
-            </header>
-
             {/* 生成菜谱页面 */}
             {activeTab === 'generate' && (
-              <div className="mb-8 max-w-md mx-auto space-y-4">
-                {/* 食材输入区域 */}
-                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
-                  <div className="flex items-center gap-0 rounded-xl overflow-hidden border border-gray-200">
-                    <div className="relative flex-1">
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={mainIngredient}
-                        onChange={(e) => setMainIngredient(e.target.value)}
-                        placeholder={isVoiceMode ? '按住说话' : '输入主食材，例如：西红柿'}
-                        className={`w-full py-4 px-5 pr-12 bg-white focus:outline-none`}
-                      />
-                      {/* 音波动画 */}
-                      {showWaveAnimation && (
-                        <div className="wave-animation absolute right-10 top-1/2 transform -translate-y-1/2 flex items-center justify-center gap-1">
-                          <div className="wave-bar"></div>
-                          <div className="wave-bar"></div>
-                          <div className="wave-bar"></div>
-                          <div className="wave-bar"></div>
-                          <div className="wave-bar"></div>
-                        </div>
-                      )}
-                      <button
-                        ref={voiceButtonRef}
-                        onClick={handleVoiceButtonClick}
-                        onMouseDown={handleVoiceStart}
-                        onMouseMove={handleVoiceMouseMove}
-                        onMouseUp={handleVoiceEnd}
-                        onMouseLeave={handleVoiceLeave}
-                        onTouchStart={handleVoiceStart}
-                        onTouchEnd={handleVoiceEnd}
-                        className={`absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full ${isVoiceMode ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'} transition-all duration-300`}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                      </button>
-                    </div>
-                    <button
-                      onClick={generateRecipe}
-                      disabled={isLoading}
-                      className={`flex items-center justify-center gap-2 px-6 py-4 bg-dark text-white ${isLoading ? 'opacity-70 cursor-not-allowed' : ''} whitespace-nowrap font-medium transition-all duration-300 hover:opacity-90`}
-                    >
-                      {isLoading ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      ) : (
-                        '搜索'
-                      )}
-                    </button>
-                  </div>
-                  
-                  {/* 动画区域 */}
-                  {isLoading && (
-                    <div className="flex flex-col items-center justify-center gap-3 mt-4">
-                      <div 
-                        className="cooking-animation cursor-pointer"
-                        onClick={() => setIsAnimationClicked(!isAnimationClicked)}
-                      >
-                        <div className={`pan ${isAnimationClicked ? 'scale-125' : ''}`}>
-                          <div className={`pan-handle ${isAnimationClicked ? 'scale-110 rotate-12' : ''}`}></div>
-                          <div className={`food ${isAnimationClicked ? 'scale-120 rotate-180' : ''}`}></div>
-                          <div className={`steam ${isAnimationClicked ? 'opacity-100 scale-125' : ''}`}>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                            <div className="steam-line"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm font-medium">{loadingText}</p>
-                    </div>
-                  )}
-                  
-                  
-                </div>
-                
-                {/* 今日推荐 */}
-                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xl font-bold text-dark font-serif">今日推荐</h3>
-                    <span className="text-sm text-primary cursor-pointer hover:underline" onClick={changeTodayRecommendation}>查看更多</span>
-                  </div>
-                  <div className="rounded-2xl border border-gray-200 p-3 bg-white cursor-pointer" onClick={() => showPredefinedRecipe(todayRecommendation)}>
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <img src={todayRecommendation.image} alt={todayRecommendation.name} className="w-full md:w-1/3 h-40 object-cover rounded-xl border border-gray-200" />
-                      <div className="flex-1">
-                        <h4 className="font-serif font-bold text-lg mb-2">{todayRecommendation.name}</h4>
-                        <p className="text-sm text-gray-600 mb-3">{todayRecommendation.name}是一道美味的中式菜肴，营养丰富，制作简单，是家庭餐桌上的常见选择。</p>
-                        <div className="flex gap-2">
-                          <span className="px-2 py-1 bg-primary text-white text-xs rounded">热门</span>
-                          <span className="px-2 py-1 border border-gray-300 text-xs rounded">{todayRecommendation.difficulty}</span>
-                          <span className="px-2 py-1 border border-gray-300 text-xs rounded">{todayRecommendation.cookingTime}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 每日精选食材推荐区 */}
-                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
-                  <h3 className="text-xl font-bold text-dark mb-4 font-serif">每日精选食材</h3>
-{/* 分类标签 */}
-                  <div className="mb-6">
-                    <div className="flex flex-wrap gap-3">
-                      <span onClick={() => handleCategoryClick('all')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'all' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>全部</span>
-                      <span onClick={() => handleCategoryClick('popular')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'popular' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>热门菜谱</span>
-                      <span onClick={() => handleCategoryClick('quick')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'quick' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>快手菜</span>
-                      <span onClick={() => handleCategoryClick('home')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'home' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>家常菜</span>
-                      <span onClick={() => handleCategoryClick('vegetarian')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'vegetarian' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>素食</span>
-                      <span onClick={() => handleCategoryClick('meat')} className={`px-4 py-2 rounded-full text-sm cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors ${selectedCategory === 'meat' ? 'bg-primary text-white border-primary' : 'border border-gray-300 text-gray-600'}`}>肉类</span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {filteredRecipes.map((recipe, index) => {
-                      const cardHeight = 300;
-                      return (
-                        <div 
-                          key={recipe.id} 
-                          className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-sm"
-                          style={{ height: `${cardHeight}px` }}
-                          onClick={() => showPredefinedRecipe(recipe)}
-                        >
-                          <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover border-b border-gray-200" />
-                          <div className="p-4 flex flex-col justify-between h-[calc(100%-120px)]">
-                            <div>
-                              <div className="flex gap-2 mb-2">
-                                <span className="px-2 py-1 bg-primary text-white text-xs rounded">{recipe.difficulty}</span>
-                                <span className="px-2 py-1 border border-gray-300 text-xs rounded">{recipe.cookingTime}</span>
-                              </div>
-                              <h4 className="font-serif font-bold text-lg mb-2">{recipe.name}</h4>
-                              <p className="text-sm text-gray-600 mb-3">{recipe.ingredients}</p>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                {Array(5).fill(0).map((_, i) => (
-                                  <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${i < 4 ? 'text-primary' : 'text-gray-300'}`} viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                              </div>
-                              <span className="text-xs text-gray-500">查看详情</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <GenerateTab
+                mainIngredient={mainIngredient}
+                onMainIngredientChange={setMainIngredient}
+                isVoiceMode={isVoiceMode}
+                showWaveAnimation={showWaveAnimation}
+                isLoading={isLoading}
+                loadingText={loadingText}
+                isAnimationClicked={isAnimationClicked}
+                inputRef={inputRef}
+                voiceButtonRef={voiceButtonRef}
+                onVoiceButtonClick={handleVoiceButtonClick}
+                onVoiceStart={handleVoiceStart}
+                onVoiceMouseMove={handleVoiceMouseMove}
+                onVoiceEnd={handleVoiceEnd}
+                onVoiceLeave={handleVoiceLeave}
+                onGenerateRecipe={generateRecipe}
+                todayRecommendation={todayRecommendation}
+                onChangeTodayRecommendation={changeTodayRecommendation}
+                onShowPredefinedRecipe={showPredefinedRecipe}
+                selectedCategory={selectedCategory}
+                onCategoryClick={handleCategoryClick}
+                filteredRecipes={filteredRecipes}
+                onToggleAnimation={() => setIsAnimationClicked(!isAnimationClicked)}
+              />
             )}
 
             {/* 社区页面 */}
             {activeTab === 'community' && (
-              <div className="mb-8 max-w-md mx-auto space-y-4">
-                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-dark font-serif">热门分享</h3>
-                    <span className="text-sm text-gray-500">今日更新</span>
-                  </div>
-                  <div className="space-y-3">
-                    {predefinedRecipes.slice(0, 3).map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => showPredefinedRecipe(item)}
-                        className="w-full text-left rounded-2xl border border-gray-200 p-3 hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex gap-3">
-                          <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-dark truncate">{item.name}</p>
-                            <p className="text-xs text-gray-500 mt-1 truncate">{item.ingredients}</p>
-                            <div className="flex gap-2 mt-2">
-                              <span className="px-2 py-1 text-xs rounded border border-gray-300">{item.difficulty}</span>
-                              <span className="px-2 py-1 text-xs rounded border border-gray-300">{item.cookingTime}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden p-4">
-                  <h3 className="text-lg font-bold text-dark font-serif mb-3">社区功能</h3>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">发笔记</div>
-                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">看关注</div>
-                    <div className="rounded-xl bg-gray-50 py-4 text-sm text-gray-600">排行榜</div>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-4">更多社区能力正在完善中</p>
-                </div>
-              </div>
+              <CommunityTab
+                predefinedRecipes={predefinedRecipes}
+                onShowPredefinedRecipe={showPredefinedRecipe}
+              />
             )}
 
             {/* 菜谱记录页面 */}
             {activeTab === 'saved' && (
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-dark font-serif">我的菜谱记录</h3>
-                  {savedRecipes.length > 0 && (
-                    <div className="flex gap-2">
-                      {isSelectMode && (
-                        <button onClick={deleteSelected} className="px-3 py-1 bg-red-500 text-white rounded-full text-sm">
-                          删除选中({selectedRecipes.size})
-                        </button>
-                      )}
-                      <button
-                        onClick={() => { setIsSelectMode(v => !v); setSelectedRecipes(new Set()); }}
-                        className="px-3 py-1 border border-dark rounded-full text-sm"
-                      >
-                        {isSelectMode ? '取消' : '删除'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {savedRecipes.length === 0 ? (
-                  <div className="retro-card rounded-lg p-8 text-center">
-                    <p className="text-gray-600">还没有保存的菜谱，生成一个菜谱试试吧！</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {savedRecipes.map((savedRecipe) => (
-                      <div key={savedRecipe.id} className={`retro-card rounded-lg p-4 transition-all duration-300 hover:shadow-md ${isSelectMode && selectedRecipes.has(savedRecipe.id) ? 'ring-2 ring-red-400' : ''}`}
-                        onClick={isSelectMode ? () => toggleSelectRecipe(savedRecipe.id) : undefined}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-2">
-                            {isSelectMode && (
-                              <input type="checkbox" readOnly checked={selectedRecipes.has(savedRecipe.id)} className="w-4 h-4" />
-                            )}
-                            <h4 className="font-serif font-bold text-lg">{savedRecipe.name}</h4>
-                          </div>
-                          {!isSelectMode && savedRecipe.isCooked && (
-                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">已做过</span>
-                          )}
-                        </div>
-                        <div className="flex gap-4 mb-3">
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.difficulty}</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">{savedRecipe.time}</span>
-                          <span className="px-2 py-1 border border-dark text-xs rounded">主食材：{savedRecipe.mainIngredient}</span>
-                        </div>
-                        {!isSelectMode && <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-500">{new Date(savedRecipe.createdAt).toLocaleString()}</span>
-                          <button
-                            onClick={() => viewSavedRecipe(savedRecipe)}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            查看详情
-                          </button>
-                        </div>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 我的页面 */}
-            {activeTab === 'profile' && (
               <div className="mb-8 max-w-md mx-auto">
                 <div className="bg-white rounded-[22px] border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="px-4 pt-5 pb-4">
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="flex flex-col items-center text-center text-dark">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 11V8a2 2 0 114 0v3M11 11V7a2 2 0 114 0v4M15 11V9a2 2 0 114 0v6.5a3.5 3.5 0 01-3.5 3.5h-6A4.5 4.5 0 015 14.5V11a2 2 0 114 0z" />
-                        </svg>
-                        <span className="text-sm font-semibold">钱包/卡券</span>
-                        <span className="text-xs text-gray-400 mt-1">¥0.00</span>
+                  <div className="px-4 pt-4 pb-3 border-b border-gray-200 flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-dark font-serif">我的菜谱记录</h3>
+                    {savedRecipes.length > 0 && (
+                      <div className="flex gap-2">
+                        {isSelectMode && (
+                          <button onClick={deleteSelected} className="px-3 py-1 bg-red-500 text-white rounded-full text-sm">
+                            删除选中({selectedRecipes.size})
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { setIsSelectMode(v => !v); setSelectedRecipes(new Set()); }}
+                          className="px-3 py-1 border border-gray-300 rounded-full text-sm"
+                        >
+                          {isSelectMode ? '取消' : '删除'}
+                        </button>
                       </div>
-                      <div className="flex flex-col items-center text-center text-dark">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 3h10a1 1 0 011 1v16l-3-1.5L12 20l-3-1.5L6 20V4a1 1 0 011-1z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 8h6M9 12h6" />
-                        </svg>
-                        <span className="text-sm font-semibold">买卖记录</span>
-                        <span className="text-[10px] bg-[#d66b4a] text-white rounded-full px-2 mt-1">NEW</span>
-                      </div>
-                      <button
-                        onClick={() => setShowSearchHistoryModal(true)}
-                        className="flex flex-col items-center text-center text-dark"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" />
-                          <circle cx="12" cy="12" r="2.5" strokeWidth="1.8" />
-                        </svg>
-                        <span className="text-sm font-semibold">搜索记录</span>
-                      </button>
-                      <button
-                        onClick={openStapleIngredientsModal}
-                        className="flex flex-col items-center text-center text-dark"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 5c-7 0-12 5-12 12 7 0 12-5 12-12z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 16c3-3 6-5 10-7" />
-                        </svg>
-                        <span className="text-sm font-semibold">常备食材</span>
-                      </button>
-                    </div>
+                    )}
                   </div>
 
-                  <div className="border-t border-gray-200 px-4 pt-4">
-                    <div className="flex gap-8 border-b border-gray-200">
-                      <button
-                        onClick={() => setProfileSubTab('cooked')}
-                        className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'cooked' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
-                      >
-                        我做过的
-                      </button>
-                      <button
-                        onClick={() => setProfileSubTab('want')}
-                        className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'want' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
-                      >
-                        我想做的
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between py-3">
-                      <p className="text-[28px] font-bold text-dark leading-none">
-                        {profileRecipes.length}
-                        <span className="text-sm text-gray-600 ml-1">道菜</span>
-                      </p>
-                      <div className="text-sm text-gray-500">添加想做 | 管理</div>
-                    </div>
-
-                    {profileRecipes.length === 0 ? (
-                      <div className="rounded-xl py-10 text-center text-gray-400 bg-gray-50 mb-4">
-                        {profileSubTab === 'cooked' ? '还没有标记为我做过的菜谱' : '还没有标记为我想做的菜谱'}
+                  <div className="p-4">
+                    {savedRecipes.length === 0 ? (
+                      <div className="rounded-xl py-10 text-center text-gray-500 bg-gray-50">
+                        还没有保存的菜谱，生成一个菜谱试试吧！
                       </div>
                     ) : (
-                      <div className="grid grid-cols-3 gap-3 pb-4">
-                        {profileRecipes.map((item, index) => (
-                          <button key={item.id} onClick={() => viewSavedRecipe(item)} className="text-left">
-                            <div className={`h-32 rounded-xl border border-gray-200 ${index % 3 === 0 ? 'bg-[#f2ddd3]' : index % 3 === 1 ? 'bg-[#d9e2d3]' : 'bg-[#d4dceb]'}`} />
-                            <p className="text-base text-dark mt-2 truncate">{item.name}</p>
-                          </button>
+                      <div className="space-y-3">
+                        {savedRecipes.map((savedRecipe) => (
+                          <div
+                            key={savedRecipe.id}
+                            className={`rounded-xl border border-gray-200 bg-white p-4 transition-all duration-300 hover:shadow-sm ${isSelectMode && selectedRecipes.has(savedRecipe.id) ? 'ring-2 ring-red-400' : ''}`}
+                            onClick={isSelectMode ? () => toggleSelectRecipe(savedRecipe.id) : undefined}
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-2">
+                                {isSelectMode && (
+                                  <input type="checkbox" readOnly checked={selectedRecipes.has(savedRecipe.id)} className="w-4 h-4" />
+                                )}
+                                <h4 className="font-serif font-bold text-lg">{savedRecipe.name}</h4>
+                              </div>
+                              {!isSelectMode && savedRecipe.isCooked && (
+                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">已做过</span>
+                              )}
+                            </div>
+                            <div className="flex gap-2 flex-wrap mb-3">
+                              <span className="px-2 py-1 border border-gray-300 text-xs rounded">{savedRecipe.difficulty}</span>
+                              <span className="px-2 py-1 border border-gray-300 text-xs rounded">{savedRecipe.time}</span>
+                              <span className="px-2 py-1 border border-gray-300 text-xs rounded">主食材：{savedRecipe.mainIngredient}</span>
+                            </div>
+                            {!isSelectMode && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-500">{new Date(savedRecipe.createdAt).toLocaleString()}</span>
+                                <button
+                                  onClick={() => viewSavedRecipe(savedRecipe)}
+                                  className="text-sm text-primary hover:underline"
+                                >
+                                  查看详情
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'profile' && (
+              <ProfileTab
+                profileSubTab={profileSubTab}
+                onProfileSubTabChange={setProfileSubTab}
+                profileRecipes={profileRecipes}
+                onViewSavedRecipe={viewSavedRecipe}
+                onOpenSearchHistory={() => setShowSearchHistoryModal(true)}
+                onOpenStapleIngredientsModal={openStapleIngredientsModal}
+              />
             )}
           </>
         )}
@@ -1250,7 +986,7 @@ export default function Home() {
         {/* 常备食材编辑模态框 */}
         {showStapleIngredientsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-light p-6 rounded-lg max-w-md w-full">
+            <div className="bg-white border border-gray-200 shadow-sm p-6 rounded-[22px] max-w-md w-full mx-4">
               <h3 className="text-xl font-bold text-dark mb-4 font-serif">编辑常备食材库</h3>
               <div className="space-y-3 mb-6">
                 {editingStapleIngredients.map((ingredient, index) => (
@@ -1259,12 +995,12 @@ export default function Home() {
                       type="text"
                       value={ingredient}
                       onChange={(e) => updateStapleIngredient(index, e.target.value)}
-                      className="flex-1 retro-input rounded-md px-3 py-2"
+                      className="flex-1 rounded-xl px-3 py-2 border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                       placeholder="输入食材"
                     />
                     <button
                       onClick={() => removeStapleIngredient(index)}
-                      className="px-3 py-2 bg-gray-200 border border-dark rounded-md hover:bg-gray-300"
+                      className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1276,13 +1012,13 @@ export default function Home() {
               <div className="flex gap-3">
                 <button
                   onClick={addStapleIngredient}
-                  className="flex-1 py-2 border border-dark rounded-md hover:bg-gray-100"
+                  className="flex-1 py-2 border border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
                 >
                   添加食材
                 </button>
                 <button
                   onClick={saveStapleIngredients}
-                  className="flex-1 py-2 retro-button rounded-md"
+                  className="flex-1 py-2 bg-dark text-white rounded-xl hover:opacity-90 transition-opacity"
                 >
                   保存
                 </button>
@@ -1291,17 +1027,17 @@ export default function Home() {
           </div>
         )}
 
+        </div>
+
         {/* 底部导航栏 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-light border-t border-gray-200 z-50">
-          <div className="max-w-3xl mx-auto flex justify-around">
+        <div className="absolute bottom-0 left-0 right-0 bg-light border-t border-gray-200 z-50">
+          <div className="w-full grid grid-cols-3">
             <button
               onClick={() => {
                 setActiveTab('generate');
                 setRecipe(null);
-                document.body.style.paddingRight = '';
-                document.body.style.overflow = '';
               }}
-              className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'generate' ? 'text-primary' : 'text-gray-600'}`}
+              className={`flex flex-col items-center justify-center py-3 transition-colors ${activeTab === 'generate' ? 'text-primary' : 'text-gray-600'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -1312,10 +1048,8 @@ export default function Home() {
               onClick={() => {
                 setActiveTab('community');
                 setRecipe(null);
-                document.body.style.paddingRight = '';
-                document.body.style.overflow = '';
               }}
-              className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'community' ? 'text-primary' : 'text-gray-600'}`}
+              className={`flex flex-col items-center justify-center py-3 transition-colors ${activeTab === 'community' ? 'text-primary' : 'text-gray-600'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -1326,10 +1060,8 @@ export default function Home() {
               onClick={() => {
                 setActiveTab('profile');
                 setRecipe(null);
-                document.body.style.paddingRight = '';
-                document.body.style.overflow = '';
               }}
-              className={`flex flex-col items-center py-3 px-6 transition-colors ${activeTab === 'profile' ? 'text-primary' : 'text-gray-600'}`}
+              className={`flex flex-col items-center justify-center py-3 transition-colors ${activeTab === 'profile' ? 'text-primary' : 'text-gray-600'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1338,10 +1070,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
-        <footer className="mt-auto py-16 text-center text-gray-500 text-sm">
-          <p>2026 @CHi2MyLF</p>
-        </footer>
       </div>
     </div>
   );
