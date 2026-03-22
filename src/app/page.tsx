@@ -5,6 +5,7 @@ import CommunityTab from '@/components/tabs/CommunityTab';
 import GenerateTab from '@/components/tabs/GenerateTab';
 import ProfileTab from '@/components/tabs/ProfileTab';
 import type { PredefinedRecipe, Recipe } from '@/types/recipe';
+import { clearCookedState, markCookedState, setWantToCookState, toggleWantToCookState } from '@/utils/recipeState';
 
 const MAX_SAVED_RECIPES = 10;
 const PROFILE_FUNNEL_STORAGE_KEY = 'profileFunnelStats';
@@ -827,11 +828,11 @@ export default function Home() {
   };
 
   const toggleWantToCook = (recipeId: string) => {
-    updateRecipeState(recipeId, (rec) => ({ ...rec, isWantToCook: !rec.isWantToCook }));
+    updateRecipeState(recipeId, (rec) => toggleWantToCookState(rec));
   };
 
   const addRecipeToWantToCook = (recipeId: string) => {
-    updateRecipeState(recipeId, (rec) => ({ ...rec, isWantToCook: true }));
+    updateRecipeState(recipeId, (rec) => setWantToCookState(rec, true));
   };
 
   // 标记做过
@@ -841,7 +842,7 @@ export default function Home() {
       setRatingModal({ recipeId, tempRating: rec.rating || 0, tempComment: rec.comment || '' });
       return;
     }
-    updateRecipeState(recipeId, (r) => ({ ...r, isCooked: false, cookedAt: undefined }));
+    updateRecipeState(recipeId, (r) => clearCookedState(r));
   };
 
   // 查看保存的菜谱详情
@@ -854,13 +855,7 @@ export default function Home() {
 
   const markRecipeCooked = (recipeId: string, rating?: number, comment?: string) => {
     const cookedAt = new Date().toISOString();
-    updateRecipeState(recipeId, (r) => ({
-      ...r,
-      isCooked: true,
-      cookedAt,
-      ...(rating !== undefined ? { rating } : {}),
-      ...(comment !== undefined ? { comment } : {}),
-    }));
+    updateRecipeState(recipeId, (r) => markCookedState(r, cookedAt, rating, comment));
     trackFunnelStep('cookedMarkCount');
     setRatingModal(null);
   };

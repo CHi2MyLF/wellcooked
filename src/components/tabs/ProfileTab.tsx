@@ -106,7 +106,7 @@ export default function ProfileTab({
 
         <div className="px-4 pb-3 space-y-3">
           <div className="rounded-xl border border-gray-200 bg-white p-3">
-            <p className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
+            <p data-testid="today-plan-title" className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
             <p className="text-xs text-gray-500 mb-3">先挑 1 道想做的菜，今天完成它。</p>
             {totalWantCount > 0 ? (
               <div className="mb-3 rounded-lg bg-[#f6f8fb] px-2.5 py-2">
@@ -170,12 +170,14 @@ export default function ProfileTab({
         <div className="border-t border-gray-200 px-4 pt-4">
           <div className="flex gap-8 border-b border-gray-200">
             <button
+              data-testid="profile-tab-cooked"
               onClick={() => onProfileSubTabChange('cooked')}
               className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'cooked' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
             >
               我做过的
             </button>
             <button
+              data-testid="profile-tab-want"
               onClick={() => onProfileSubTabChange('want')}
               className={`pb-3 text-2xl font-bold border-b-4 transition-colors ${profileSubTab === 'want' ? 'border-dark text-dark' : 'border-transparent text-gray-300'}`}
             >
@@ -220,6 +222,7 @@ export default function ProfileTab({
               {profileRecipes.map((item, index) => (
                 <button
                   key={item.id}
+                  data-testid={`profile-recipe-${item.id}`}
                   onClick={() => onViewSavedRecipe(item, profileSubTab === 'want' ? 'profile_want' : 'profile_cooked')}
                   className="text-left"
                 >
