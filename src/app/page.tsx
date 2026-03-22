@@ -42,6 +42,68 @@ const getIngredientValidationError = (value: string) => {
   return '';
 };
 
+const getLocalDayKey = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+};
+
+const getStartOfWeek = (date: Date) => {
+  const start = new Date(date);
+  const day = start.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + diff);
+  start.setHours(0, 0, 0, 0);
+  return start;
+};
+
+const getWeeklyCookedDays = (recipes: Recipe[], weekGoal: number) => {
+  const now = new Date();
+  const weekStart = getStartOfWeek(now).getTime();
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+  const todayEndTime = todayEnd.getTime();
+  const dayKeys = new Set<string>();
+
+  recipes.forEach((item) => {
+    const source = item.cookedAt || (item.isCooked ? item.createdAt : '');
+    if (!source) return;
+    const date = new Date(source);
+    if (Number.isNaN(date.getTime())) return;
+    const time = date.getTime();
+    if (time < weekStart || time > todayEndTime) return;
+    const dayKey = getLocalDayKey(source);
+    if (dayKey) dayKeys.add(dayKey);
+  });
+
+  return {
+    cookedDays: dayKeys.size,
+    weekGoal,
+  };
+};
+
+const getConsecutiveCookedDays = (recipes: Recipe[]) => {
+  const dayKeys = new Set<string>();
+  recipes.forEach((item) => {
+    const source = item.cookedAt || (item.isCooked ? item.createdAt : '');
+    if (!source) return;
+    const dayKey = getLocalDayKey(source);
+    if (dayKey) dayKeys.add(dayKey);
+  });
+
+  let streak = 0;
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  while (true) {
+    const key = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+    if (!dayKeys.has(key)) break;
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+};
+
 export default function Home() {
   // 预设菜谱数据
   const predefinedRecipes: PredefinedRecipe[] = [
@@ -209,6 +271,8 @@ export default function Home() {
   const [ratingModal, setRatingModal] = useState<{ recipeId: string; tempRating: number; tempComment: string } | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
+  const [appError, setAppError] = useState<{ message: string; retryable: boolean } | null>(null);
+  const [weeklyGoal] = useState(7);
   
   // 语音识别相关
   const [isRecording, setIsRecording] = useState(false);
@@ -260,7 +324,10 @@ export default function Home() {
         const uniqueRecipes = parsed.reduce((acc: Recipe[], current: Recipe) => {
           const exists = acc.find(rec => rec.name === current.name);
           if (!exists) {
-            acc.push(current);
+            acc.push({
+              ...current,
+              cookedAt: current.cookedAt || (current.isCooked ? current.createdAt : undefined),
+            });
           }
           return acc;
         }, []);
@@ -277,6 +344,10 @@ export default function Home() {
   }, [savedRecipes]);
 
   // 语音输入功能
+  const showAppError = (message: string, retryable = false) => {
+    setAppError({ message, retryable });
+  };
+
   const handleVoiceInput = () => {
     if ('webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
@@ -317,6 +388,7 @@ export default function Home() {
       
       recognition.onerror = (event: any) => {
         console.error('语音识别错误:', event.error);
+        showAppError('语音识别失败，请重试');
         setIsRecording(false);
         setVoiceButtonText('按住说话');
         setIsMouseOver(false);
@@ -335,7 +407,7 @@ export default function Home() {
       recognitionRef.current = recognition;
       recognition.start();
     } else {
-      alert('您的浏览器不支持语音识别功能');
+      showAppError('您的浏览器不支持语音识别功能');
     }
   };
 
@@ -425,10 +497,11 @@ export default function Home() {
     const ingredientInput = mainIngredient.trim();
     const validationError = getIngredientValidationError(ingredientInput);
     if (validationError) {
-      alert(validationError);
+      showAppError(validationError);
       return;
     }
 
+    setAppError(null);
     setIsLoading(true);
     setRecipe(null);
     
@@ -460,7 +533,7 @@ export default function Home() {
 
       // 检查是否有错误
       if (data.error) {
-        alert(data.error);
+        showAppError(data.error, true);
         return;
       }
 
@@ -472,13 +545,13 @@ export default function Home() {
         parsedRecipe = JSON.parse(recipeData);
       } catch (parseError) {
         console.error('解析菜谱失败:', parseError);
-        alert('生成菜谱失败，请稍后重试');
+        showAppError('生成菜谱失败，请稍后重试', true);
         return;
       }
 
       // 检查解析后的菜谱是否有错误
       if (parsedRecipe.error) {
-        alert(parsedRecipe.error);
+        showAppError(parsedRecipe.error, true);
         return;
       }
 
@@ -510,7 +583,7 @@ export default function Home() {
       });
     } catch (error) {
       console.error('生成菜谱失败:', error);
-      alert('生成菜谱失败，请稍后重试');
+      showAppError('生成菜谱失败，请稍后重试', true);
     } finally {
       // 清除加载定时器
       if (loadingTimer) {
@@ -642,9 +715,9 @@ export default function Home() {
       setRatingModal({ recipeId, tempRating: rec.rating || 0, tempComment: rec.comment || '' });
       return;
     }
-    setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: false } : r));
+    setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: false, cookedAt: undefined } : r));
     if (recipe && recipe.id === recipeId) {
-      setRecipe({ ...recipe, isCooked: false });
+      setRecipe({ ...recipe, isCooked: false, cookedAt: undefined });
     }
   };
 
@@ -667,6 +740,8 @@ export default function Home() {
   const wantToCookRecipes = savedRecipes.filter(recipe => recipe.isWantToCook);
   const totalCookedCount = cookedRecipes.length;
   const totalWantCount = wantToCookRecipes.length;
+  const weeklyCookStats = getWeeklyCookedDays(cookedRecipes, weeklyGoal);
+  const consecutiveCookDays = getConsecutiveCookedDays(cookedRecipes);
   const profileRecipes = profileSubTab === 'cooked' ? cookedRecipes : wantToCookRecipes;
   const recentRecipes = savedRecipes.slice(0, 10);
 
@@ -674,6 +749,32 @@ export default function Home() {
     <div className="min-h-screen bg-gray-300 p-4 flex items-center justify-center">
       <div className="w-full max-w-md h-[calc(100vh-2rem)] max-h-[900px] bg-secondary border border-gray-300 rounded-[28px] shadow-xl relative overflow-hidden">
         <div className="h-full overflow-y-auto px-4 pt-4 pb-24">
+        {appError && (
+          <div className="mb-4 max-w-md mx-auto">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 flex items-center justify-between gap-3">
+              <p className="text-sm text-red-700">{appError.message}</p>
+              <div className="flex items-center gap-2 shrink-0">
+                {appError.retryable && (
+                  <button
+                    onClick={() => {
+                      setAppError(null);
+                      void generateRecipe();
+                    }}
+                    className="text-xs px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-100 transition-colors"
+                  >
+                    重试
+                  </button>
+                )}
+                <button
+                  onClick={() => setAppError(null)}
+                  className="text-xs px-2 py-1 rounded border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+                >
+                  关闭
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 菜谱详情页面 - 优先显示 */}
         {recipe && (
@@ -875,6 +976,9 @@ export default function Home() {
                 profileRecipes={profileRecipes}
                 totalCookedCount={totalCookedCount}
                 totalWantCount={totalWantCount}
+                weeklyCookedDays={weeklyCookStats.cookedDays}
+                weeklyGoal={weeklyCookStats.weekGoal}
+                consecutiveCookDays={consecutiveCookDays}
                 onViewSavedRecipe={viewSavedRecipe}
                 onOpenSearchHistory={() => setShowSearchHistoryModal(true)}
                 onOpenStapleIngredientsModal={openStapleIngredientsModal}
@@ -919,11 +1023,12 @@ export default function Home() {
               <div className="flex gap-3">
                 <button
                   onClick={() => {
+                    const cookedAt = new Date().toISOString();
                     setSavedRecipes(prev => prev.map(r =>
-                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, rating: ratingModal.tempRating, comment: ratingModal.tempComment } : r
+                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, cookedAt, rating: ratingModal.tempRating, comment: ratingModal.tempComment } : r
                     ));
                     if (recipe && recipe.id === ratingModal.recipeId) {
-                      setRecipe({ ...recipe, isCooked: true, rating: ratingModal.tempRating, comment: ratingModal.tempComment });
+                      setRecipe({ ...recipe, isCooked: true, cookedAt, rating: ratingModal.tempRating, comment: ratingModal.tempComment });
                     }
                     setRatingModal(null);
                   }}
@@ -933,11 +1038,12 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => {
+                    const cookedAt = new Date().toISOString();
                     setSavedRecipes(prev => prev.map(r =>
-                      r.id === ratingModal.recipeId ? { ...r, isCooked: true } : r
+                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, cookedAt } : r
                     ));
                     if (recipe && recipe.id === ratingModal.recipeId) {
-                      setRecipe({ ...recipe, isCooked: true });
+                      setRecipe({ ...recipe, isCooked: true, cookedAt });
                     }
                     setRatingModal(null);
                   }}

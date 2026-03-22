@@ -7,6 +7,7 @@ export interface Recipe {
   tips: string[];
   mainIngredient: string;
   createdAt: string;
+  cookedAt?: string;
   isWantToCook?: boolean;
   isCooked?: boolean;
   rating?: number;

@@ -9,6 +9,9 @@ interface ProfileTabProps {
   profileRecipes: Recipe[];
   totalCookedCount: number;
   totalWantCount: number;
+  weeklyCookedDays: number;
+  weeklyGoal: number;
+  consecutiveCookDays: number;
   onViewSavedRecipe: (recipe: Recipe) => void;
   onOpenSearchHistory: () => void;
   onOpenStapleIngredientsModal: () => void;
@@ -22,6 +25,9 @@ export default function ProfileTab({
   profileRecipes,
   totalCookedCount,
   totalWantCount,
+  weeklyCookedDays,
+  weeklyGoal,
+  consecutiveCookDays,
   onViewSavedRecipe,
   onOpenSearchHistory,
   onOpenStapleIngredientsModal,
@@ -92,11 +98,11 @@ export default function ProfileTab({
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
               <p className="text-xs text-gray-500">本周目标</p>
-              <p className="text-lg font-semibold text-dark mt-1">3 / 7 天</p>
+              <p className="text-lg font-semibold text-dark mt-1">{weeklyCookedDays} / {weeklyGoal} 天</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
               <p className="text-xs text-gray-500">连续打卡</p>
-              <p className="text-lg font-semibold text-dark mt-1">2 天</p>
+              <p className="text-lg font-semibold text-dark mt-1">{consecutiveCookDays} 天</p>
             </div>
           </div>
         </div>
@@ -155,3 +161,4 @@ export default function ProfileTab({
     </div>
   );
 }
+
