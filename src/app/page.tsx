@@ -888,6 +888,30 @@ export default function Home() {
     setRatingModal(null);
   };
 
+  const exportRecipeMissingIngredients = (targetRecipe: Recipe) => {
+    const missingIngredients = getRecipeMissingIngredients(targetRecipe, stapleSet);
+    if (missingIngredients.length === 0) {
+      showAppError('当前菜谱没有缺料，暂不需要导出清单');
+      return;
+    }
+    const lines = [
+      `菜谱：${targetRecipe.name}`,
+      '缺料清单：',
+      ...missingIngredients.map((item, index) => `${index + 1}. ${item}`),
+      '',
+      `导出时间：${new Date().toLocaleString()}`,
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${targetRecipe.name}-缺料清单.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 更换今日推荐菜谱
   const changeTodayRecommendation = () => {
     // 随机选择一个菜谱，排除当前的
@@ -903,6 +927,7 @@ export default function Home() {
   const totalCookedCount = cookedRecipes.length;
   const totalWantCount = wantToCookRecipes.length;
   const stapleSet = new Set(stapleIngredients.map(normalizeIngredientToken).filter(Boolean));
+  const currentRecipeMissingIngredients = recipe ? getRecipeMissingIngredients(recipe, stapleSet) : [];
   const wantCookMatchList = wantToCookRecipes.map((item) => {
     const missingIngredients = getRecipeMissingIngredients(item, stapleSet);
     return {
@@ -1004,6 +1029,22 @@ export default function Home() {
                   </ul>
                 </div>
               )}
+              <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <p className="text-sm font-medium text-dark">缺料清单</p>
+                {currentRecipeMissingIngredients.length === 0 ? (
+                  <p className="text-xs text-gray-500 mt-1">常备食材已覆盖，当前无需补料。</p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-1">
+                    缺少：{currentRecipeMissingIngredients.join('、')}
+                  </p>
+                )}
+                <button
+                  onClick={() => exportRecipeMissingIngredients(recipe)}
+                  className="mt-2 w-full py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-white transition-colors"
+                >
+                  导出缺料清单
+                </button>
+              </div>
               {/* 想做和做过按钮 */}
               <div className="flex gap-4">
                 <button
