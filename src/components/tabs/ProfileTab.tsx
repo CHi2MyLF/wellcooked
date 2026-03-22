@@ -15,7 +15,14 @@ interface ProfileTabProps {
   weeklyCookedDays: number;
   weeklyGoal: number;
   consecutiveCookDays: number;
-  onViewSavedRecipe: (recipe: Recipe) => void;
+  profileFunnelStats: {
+    profileEntryCount: number;
+    wantTabClickCount: number;
+    wantRecipeOpenCount: number;
+    cookedMarkCount: number;
+    updatedAt: string;
+  };
+  onViewSavedRecipe: (recipe: Recipe, source?: 'profile_want' | 'profile_cooked' | 'saved' | 'search') => void;
   onOpenSearchHistory: () => void;
   onOpenStapleIngredientsModal: () => void;
   onOpenGenerateTab: () => void;
@@ -34,6 +41,7 @@ export default function ProfileTab({
   weeklyCookedDays,
   weeklyGoal,
   consecutiveCookDays,
+  profileFunnelStats,
   onViewSavedRecipe,
   onOpenSearchHistory,
   onOpenStapleIngredientsModal,
@@ -41,6 +49,7 @@ export default function ProfileTab({
   onOpenManageRecipes,
 }: ProfileTabProps) {
   const isEmpty = profileRecipes.length === 0;
+  const toRateText = (value: number, base: number) => (base > 0 ? `${Math.round((value / base) * 100)}%` : '--');
 
   return (
     <div className="mb-8 max-w-md mx-auto">
@@ -123,6 +132,21 @@ export default function ProfileTab({
               <p className="text-lg font-semibold text-dark mt-1">{consecutiveCookDays} 天</p>
             </div>
           </div>
+          <div className="rounded-xl border border-gray-200 bg-white p-3">
+            <p className="text-sm font-semibold text-dark">行为漏斗</p>
+            <p className="text-xs text-gray-500 mt-1">个人页 -&gt; 我想做的 -&gt; 打开菜谱 -&gt; 标记做过</p>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg bg-[#f6f8fb] px-2 py-2 text-gray-600">个人页 {profileFunnelStats.profileEntryCount}</div>
+              <div className="rounded-lg bg-[#f6f8fb] px-2 py-2 text-gray-600">我想做的 {profileFunnelStats.wantTabClickCount}</div>
+              <div className="rounded-lg bg-[#f6f8fb] px-2 py-2 text-gray-600">打开菜谱 {profileFunnelStats.wantRecipeOpenCount}</div>
+              <div className="rounded-lg bg-[#f6f8fb] px-2 py-2 text-gray-600">标记做过 {profileFunnelStats.cookedMarkCount}</div>
+            </div>
+            <div className="mt-2 text-xs text-gray-500 leading-5">
+              <p>我想做点击率：{toRateText(profileFunnelStats.wantTabClickCount, profileFunnelStats.profileEntryCount)}</p>
+              <p>菜谱打开率：{toRateText(profileFunnelStats.wantRecipeOpenCount, profileFunnelStats.wantTabClickCount)}</p>
+              <p>做过转化率：{toRateText(profileFunnelStats.cookedMarkCount, profileFunnelStats.wantRecipeOpenCount)}</p>
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-gray-200 px-4 pt-4">
@@ -176,7 +200,11 @@ export default function ProfileTab({
           ) : (
             <div className="grid grid-cols-3 gap-3 pb-4">
               {profileRecipes.map((item, index) => (
-                <button key={item.id} onClick={() => onViewSavedRecipe(item)} className="text-left">
+                <button
+                  key={item.id}
+                  onClick={() => onViewSavedRecipe(item, profileSubTab === 'want' ? 'profile_want' : 'profile_cooked')}
+                  className="text-left"
+                >
                   <div className={`relative h-32 rounded-xl border border-gray-200 overflow-hidden ${index % 3 === 0 ? 'bg-[#f2ddd3]' : index % 3 === 1 ? 'bg-[#d9e2d3]' : 'bg-[#d4dceb]'}`}>
                     {item.image && (
                       <img
@@ -200,3 +228,4 @@ export default function ProfileTab({
     </div>
   );
 }
+

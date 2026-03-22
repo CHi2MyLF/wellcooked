@@ -7,6 +7,23 @@ import ProfileTab from '@/components/tabs/ProfileTab';
 import type { PredefinedRecipe, Recipe } from '@/types/recipe';
 
 const MAX_SAVED_RECIPES = 10;
+const PROFILE_FUNNEL_STORAGE_KEY = 'profileFunnelStats';
+
+interface ProfileFunnelStats {
+  profileEntryCount: number;
+  wantTabClickCount: number;
+  wantRecipeOpenCount: number;
+  cookedMarkCount: number;
+  updatedAt: string;
+}
+
+const defaultProfileFunnelStats: ProfileFunnelStats = {
+  profileEntryCount: 0,
+  wantTabClickCount: 0,
+  wantRecipeOpenCount: 0,
+  cookedMarkCount: 0,
+  updatedAt: '',
+};
 
 const normalizeSavedRecipes = (recipes: Recipe[]) => {
   const parseCreatedAt = (value?: string) => {
@@ -295,6 +312,7 @@ export default function Home() {
   const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
   const [appError, setAppError] = useState<{ message: string; retryable: boolean } | null>(null);
   const [weeklyGoal] = useState(7);
+  const [profileFunnelStats, setProfileFunnelStats] = useState<ProfileFunnelStats>(defaultProfileFunnelStats);
   
   // 语音识别相关
   const [isRecording, setIsRecording] = useState(false);
@@ -366,6 +384,37 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('savedRecipes', JSON.stringify(normalizeSavedRecipes(savedRecipes)));
   }, [savedRecipes]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(PROFILE_FUNNEL_STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved) as Partial<ProfileFunnelStats>;
+      setProfileFunnelStats({
+        profileEntryCount: Number(parsed.profileEntryCount) || 0,
+        wantTabClickCount: Number(parsed.wantTabClickCount) || 0,
+        wantRecipeOpenCount: Number(parsed.wantRecipeOpenCount) || 0,
+        cookedMarkCount: Number(parsed.cookedMarkCount) || 0,
+        updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : '',
+      });
+    } catch {
+      setProfileFunnelStats(defaultProfileFunnelStats);
+    }
+  }, []);
+
+  const trackFunnelStep = (
+    step: 'profileEntryCount' | 'wantTabClickCount' | 'wantRecipeOpenCount' | 'cookedMarkCount',
+  ) => {
+    setProfileFunnelStats((prev) => {
+      const next = {
+        ...prev,
+        [step]: prev[step] + 1,
+        updatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(PROFILE_FUNNEL_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   // 语音输入功能
   const showAppError = (message: string, retryable = false) => {
@@ -682,6 +731,27 @@ export default function Home() {
     setActiveTab('saved');
   };
 
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      setProfileFunnelStats((prev) => {
+        const next = {
+          ...prev,
+          profileEntryCount: prev.profileEntryCount + 1,
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(PROFILE_FUNNEL_STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [activeTab]);
+
+  const handleProfileSubTabChange = (tab: 'cooked' | 'want') => {
+    setProfileSubTab(tab);
+    if (tab === 'want') {
+      trackFunnelStep('wantTabClickCount');
+    }
+  };
+
   // 保存常备食材
   const saveStapleIngredients = () => {
     setStapleIngredients(editingStapleIngredients);
@@ -748,8 +818,39 @@ export default function Home() {
   };
 
   // 查看保存的菜谱详情
-  const viewSavedRecipe = (savedRecipe: Recipe) => {
+  const viewSavedRecipe = (savedRecipe: Recipe, source?: 'profile_want' | 'profile_cooked' | 'saved' | 'search') => {
+    if (source === 'profile_want') {
+      trackFunnelStep('wantRecipeOpenCount');
+    }
     setRecipe(savedRecipe);
+  };
+
+  const markRecipeCooked = (recipeId: string, rating?: number, comment?: string) => {
+    const cookedAt = new Date().toISOString();
+    setSavedRecipes((prev) =>
+      prev.map((r) =>
+        r.id === recipeId
+          ? {
+              ...r,
+              isCooked: true,
+              cookedAt,
+              ...(rating !== undefined ? { rating } : {}),
+              ...(comment !== undefined ? { comment } : {}),
+            }
+          : r,
+      ),
+    );
+    if (recipe && recipe.id === recipeId) {
+      setRecipe({
+        ...recipe,
+        isCooked: true,
+        cookedAt,
+        ...(rating !== undefined ? { rating } : {}),
+        ...(comment !== undefined ? { comment } : {}),
+      });
+    }
+    trackFunnelStep('cookedMarkCount');
+    setRatingModal(null);
   };
 
   // 更换今日推荐菜谱
@@ -1022,7 +1123,7 @@ export default function Home() {
             {activeTab === 'profile' && (
               <ProfileTab
                 profileSubTab={profileSubTab}
-                onProfileSubTabChange={setProfileSubTab}
+                onProfileSubTabChange={handleProfileSubTabChange}
                 profileRecipes={profileRecipes}
                 totalCookedCount={totalCookedCount}
                 totalWantCount={totalWantCount}
@@ -1032,6 +1133,7 @@ export default function Home() {
                 weeklyCookedDays={weeklyCookStats.cookedDays}
                 weeklyGoal={weeklyCookStats.weekGoal}
                 consecutiveCookDays={consecutiveCookDays}
+                profileFunnelStats={profileFunnelStats}
                 onViewSavedRecipe={viewSavedRecipe}
                 onOpenSearchHistory={() => setShowSearchHistoryModal(true)}
                 onOpenStapleIngredientsModal={openStapleIngredientsModal}
@@ -1075,31 +1177,13 @@ export default function Home() {
               />
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    const cookedAt = new Date().toISOString();
-                    setSavedRecipes(prev => prev.map(r =>
-                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, cookedAt, rating: ratingModal.tempRating, comment: ratingModal.tempComment } : r
-                    ));
-                    if (recipe && recipe.id === ratingModal.recipeId) {
-                      setRecipe({ ...recipe, isCooked: true, cookedAt, rating: ratingModal.tempRating, comment: ratingModal.tempComment });
-                    }
-                    setRatingModal(null);
-                  }}
+                  onClick={() => markRecipeCooked(ratingModal.recipeId, ratingModal.tempRating, ratingModal.tempComment)}
                   className="flex-1 py-2 retro-button rounded-md"
                 >
                   保存
                 </button>
                 <button
-                  onClick={() => {
-                    const cookedAt = new Date().toISOString();
-                    setSavedRecipes(prev => prev.map(r =>
-                      r.id === ratingModal.recipeId ? { ...r, isCooked: true, cookedAt } : r
-                    ));
-                    if (recipe && recipe.id === ratingModal.recipeId) {
-                      setRecipe({ ...recipe, isCooked: true, cookedAt });
-                    }
-                    setRatingModal(null);
-                  }}
+                  onClick={() => markRecipeCooked(ratingModal.recipeId)}
                   className="flex-1 py-2 border border-dark rounded-md hover:bg-gray-100"
                 >
                   跳过
