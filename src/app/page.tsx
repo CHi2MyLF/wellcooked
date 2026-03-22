@@ -121,6 +121,32 @@ const getConsecutiveCookedDays = (recipes: Recipe[]) => {
   return streak;
 };
 
+const getRecentCookTrend = (recipes: Recipe[]) => {
+  const dayCounts = new Map<string, number>();
+  recipes.forEach((item) => {
+    const source = item.cookedAt || (item.isCooked ? item.createdAt : '');
+    if (!source) return;
+    const dayKey = getLocalDayKey(source);
+    if (!dayKey) return;
+    dayCounts.set(dayKey, (dayCounts.get(dayKey) || 0) + 1);
+  });
+
+  const days: Array<{ label: string; count: number }> = [];
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  for (let i = 6; i >= 0; i -= 1) {
+    const date = new Date(cursor);
+    date.setDate(cursor.getDate() - i);
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const weekLabel = '日一二三四五六'[date.getDay()];
+    days.push({
+      label: `周${weekLabel}`,
+      count: dayCounts.get(key) || 0,
+    });
+  }
+  return days;
+};
+
 const splitIngredientText = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value
@@ -892,6 +918,7 @@ export default function Home() {
     .slice(0, 2);
   const weeklyCookStats = getWeeklyCookedDays(cookedRecipes, weeklyGoal);
   const consecutiveCookDays = getConsecutiveCookedDays(cookedRecipes);
+  const recentCookTrend = getRecentCookTrend(cookedRecipes);
   const profileRecipes = profileSubTab === 'cooked' ? cookedRecipes : wantToCookRecipes;
   const recentRecipes = savedRecipes.slice(0, 10);
 
@@ -1142,6 +1169,7 @@ export default function Home() {
                 weeklyCookedDays={weeklyCookStats.cookedDays}
                 weeklyGoal={weeklyCookStats.weekGoal}
                 consecutiveCookDays={consecutiveCookDays}
+                recentCookTrend={recentCookTrend}
                 profileFunnelStats={profileFunnelStats}
                 onViewSavedRecipe={viewSavedRecipe}
                 onOpenSearchHistory={() => setShowSearchHistoryModal(true)}

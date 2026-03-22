@@ -15,6 +15,7 @@ interface ProfileTabProps {
   weeklyCookedDays: number;
   weeklyGoal: number;
   consecutiveCookDays: number;
+  recentCookTrend: Array<{ label: string; count: number }>;
   profileFunnelStats: {
     profileEntryCount: number;
     wantTabClickCount: number;
@@ -41,6 +42,7 @@ export default function ProfileTab({
   weeklyCookedDays,
   weeklyGoal,
   consecutiveCookDays,
+  recentCookTrend,
   profileFunnelStats,
   onViewSavedRecipe,
   onOpenSearchHistory,
@@ -50,6 +52,7 @@ export default function ProfileTab({
 }: ProfileTabProps) {
   const isEmpty = profileRecipes.length === 0;
   const toRateText = (value: number, base: number) => (base > 0 ? `${Math.round((value / base) * 100)}%` : '--');
+  const maxTrendCount = Math.max(1, ...recentCookTrend.map((item) => item.count));
 
   return (
     <div className="mb-8 max-w-md mx-auto">
@@ -147,6 +150,21 @@ export default function ProfileTab({
               <p>做过转化率：{toRateText(profileFunnelStats.cookedMarkCount, profileFunnelStats.wantRecipeOpenCount)}</p>
             </div>
           </div>
+          <div className="rounded-xl border border-gray-200 bg-white p-3">
+            <p className="text-sm font-semibold text-dark">近 7 天做饭趋势</p>
+            <div className="mt-3 grid grid-cols-7 gap-1.5 items-end h-24">
+              {recentCookTrend.map((item) => (
+                <div key={item.label} className="flex flex-col items-center justify-end gap-1">
+                  <div className="text-[10px] text-gray-500 leading-none">{item.count}</div>
+                  <div
+                    className="w-full rounded-t bg-[#d9e2d3]"
+                    style={{ height: `${Math.max(10, (item.count / maxTrendCount) * 56)}px` }}
+                  />
+                  <div className="text-[10px] text-gray-500 leading-none">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-gray-200 px-4 pt-4">
@@ -228,4 +246,3 @@ export default function ProfileTab({
     </div>
   );
 }
-
