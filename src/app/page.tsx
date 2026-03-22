@@ -573,6 +573,16 @@ export default function Home() {
     setShowStapleIngredientsModal(true);
   };
 
+  const openGenerateFromProfile = () => {
+    setRecipe(null);
+    setActiveTab('generate');
+  };
+
+  const openSavedForManage = () => {
+    setRecipe(null);
+    setActiveTab('saved');
+  };
+
   // 保存常备食材
   const saveStapleIngredients = () => {
     setStapleIngredients(editingStapleIngredients);
@@ -655,6 +665,8 @@ export default function Home() {
 
   const cookedRecipes = savedRecipes.filter(recipe => recipe.isCooked);
   const wantToCookRecipes = savedRecipes.filter(recipe => recipe.isWantToCook);
+  const totalCookedCount = cookedRecipes.length;
+  const totalWantCount = wantToCookRecipes.length;
   const profileRecipes = profileSubTab === 'cooked' ? cookedRecipes : wantToCookRecipes;
   const recentRecipes = savedRecipes.slice(0, 10);
 
@@ -861,9 +873,13 @@ export default function Home() {
                 profileSubTab={profileSubTab}
                 onProfileSubTabChange={setProfileSubTab}
                 profileRecipes={profileRecipes}
+                totalCookedCount={totalCookedCount}
+                totalWantCount={totalWantCount}
                 onViewSavedRecipe={viewSavedRecipe}
                 onOpenSearchHistory={() => setShowSearchHistoryModal(true)}
                 onOpenStapleIngredientsModal={openStapleIngredientsModal}
+                onOpenGenerateTab={openGenerateFromProfile}
+                onOpenManageRecipes={openSavedForManage}
               />
             )}
           </>

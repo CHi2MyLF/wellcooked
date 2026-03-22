@@ -7,21 +7,27 @@ interface ProfileTabProps {
   profileSubTab: 'cooked' | 'want';
   onProfileSubTabChange: (tab: 'cooked' | 'want') => void;
   profileRecipes: Recipe[];
+  totalCookedCount: number;
+  totalWantCount: number;
   onViewSavedRecipe: (recipe: Recipe) => void;
   onOpenSearchHistory: () => void;
   onOpenStapleIngredientsModal: () => void;
+  onOpenGenerateTab: () => void;
+  onOpenManageRecipes: () => void;
 }
 
 export default function ProfileTab({
   profileSubTab,
   onProfileSubTabChange,
   profileRecipes,
+  totalCookedCount,
+  totalWantCount,
   onViewSavedRecipe,
   onOpenSearchHistory,
   onOpenStapleIngredientsModal,
+  onOpenGenerateTab,
+  onOpenManageRecipes,
 }: ProfileTabProps) {
-  const cookedCount = profileRecipes.filter((item) => item.isCooked).length;
-  const wantCount = profileRecipes.filter((item) => item.isWantToCook).length;
   const isEmpty = profileRecipes.length === 0;
 
   return (
@@ -33,7 +39,7 @@ export default function ProfileTab({
               <div className="w-12 h-12 rounded-full bg-[#d9e2d3] text-dark flex items-center justify-center font-bold text-lg">厨</div>
               <div>
                 <p className="text-base font-semibold text-dark">今天也要吃好一点</p>
-                <p className="text-xs text-gray-500 mt-1">已做 {cookedCount} 道 | 想做 {wantCount} 道</p>
+                <p className="text-xs text-gray-500 mt-1">已做 {totalCookedCount} 道 | 想做 {totalWantCount} 道</p>
               </div>
             </div>
             <button className="text-xs px-3 py-1.5 rounded-full border border-gray-300 text-gray-700 hover:bg-white transition-colors">编辑资料</button>
@@ -79,8 +85,8 @@ export default function ProfileTab({
             <p className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
             <p className="text-xs text-gray-500 mb-3">先挑 1 道想做的菜，今天完成它。</p>
             <div className="flex gap-2">
-              <button className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
-              <button className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
+              <button onClick={onOpenGenerateTab} className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
+              <button onClick={onOpenStapleIngredientsModal} className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -116,7 +122,10 @@ export default function ProfileTab({
               {profileRecipes.length}
               <span className="text-sm text-gray-600 ml-1">道菜</span>
             </p>
-            <div className="text-sm text-gray-500">添加想做 | 管理</div>
+            <div className="flex items-center gap-3 text-sm">
+              <button onClick={onOpenGenerateTab} className="text-gray-600 hover:text-dark transition-colors">添加想做</button>
+              <button onClick={onOpenManageRecipes} className="text-gray-600 hover:text-dark transition-colors">管理</button>
+            </div>
           </div>
 
           {isEmpty ? (
@@ -124,6 +133,12 @@ export default function ProfileTab({
               <div className="rounded-xl py-10 text-center text-gray-400 bg-gray-50">
                 {profileSubTab === 'cooked' ? '还没有标记为我做过的菜谱' : '还没有标记为我想做的菜谱'}
               </div>
+              <button
+                onClick={onOpenGenerateTab}
+                className="w-full mt-3 rounded-xl bg-dark text-white py-2.5 text-sm hover:opacity-90 transition-opacity"
+              >
+                去添加第一道想做菜谱
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3 pb-4">
@@ -140,4 +155,3 @@ export default function ProfileTab({
     </div>
   );
 }
-
