@@ -818,25 +818,20 @@ export default function Home() {
     setIsSelectMode(false);
   };
 
+  const updateRecipeState = (recipeId: string, updater: (target: Recipe) => Recipe) => {
+    setSavedRecipes((prev) => prev.map((rec) => (rec.id === recipeId ? updater(rec) : rec)));
+    setRecipe((prev) => {
+      if (!prev || prev.id !== recipeId) return prev;
+      return updater(prev);
+    });
+  };
+
   const toggleWantToCook = (recipeId: string) => {
-    setSavedRecipes(prev => prev.map(rec => {
-      if (rec.id === recipeId) {
-        return { ...rec, isWantToCook: !rec.isWantToCook };
-      }
-      return rec;
-    }));
-    if (recipe && recipe.id === recipeId) {
-      setRecipe({ ...recipe, isWantToCook: !recipe.isWantToCook });
-    }
+    updateRecipeState(recipeId, (rec) => ({ ...rec, isWantToCook: !rec.isWantToCook }));
   };
 
   const addRecipeToWantToCook = (recipeId: string) => {
-    setSavedRecipes((prev) =>
-      prev.map((rec) => (rec.id === recipeId ? { ...rec, isWantToCook: true } : rec)),
-    );
-    if (recipe && recipe.id === recipeId) {
-      setRecipe({ ...recipe, isWantToCook: true });
-    }
+    updateRecipeState(recipeId, (rec) => ({ ...rec, isWantToCook: true }));
   };
 
   // 标记做过
@@ -846,10 +841,7 @@ export default function Home() {
       setRatingModal({ recipeId, tempRating: rec.rating || 0, tempComment: rec.comment || '' });
       return;
     }
-    setSavedRecipes(prev => prev.map(r => r.id === recipeId ? { ...r, isCooked: false, cookedAt: undefined } : r));
-    if (recipe && recipe.id === recipeId) {
-      setRecipe({ ...recipe, isCooked: false, cookedAt: undefined });
-    }
+    updateRecipeState(recipeId, (r) => ({ ...r, isCooked: false, cookedAt: undefined }));
   };
 
   // 查看保存的菜谱详情
@@ -862,28 +854,13 @@ export default function Home() {
 
   const markRecipeCooked = (recipeId: string, rating?: number, comment?: string) => {
     const cookedAt = new Date().toISOString();
-    setSavedRecipes((prev) =>
-      prev.map((r) =>
-        r.id === recipeId
-          ? {
-              ...r,
-              isCooked: true,
-              cookedAt,
-              ...(rating !== undefined ? { rating } : {}),
-              ...(comment !== undefined ? { comment } : {}),
-            }
-          : r,
-      ),
-    );
-    if (recipe && recipe.id === recipeId) {
-      setRecipe({
-        ...recipe,
-        isCooked: true,
-        cookedAt,
-        ...(rating !== undefined ? { rating } : {}),
-        ...(comment !== undefined ? { comment } : {}),
-      });
-    }
+    updateRecipeState(recipeId, (r) => ({
+      ...r,
+      isCooked: true,
+      cookedAt,
+      ...(rating !== undefined ? { rating } : {}),
+      ...(comment !== undefined ? { comment } : {}),
+    }));
     trackFunnelStep('cookedMarkCount');
     setRatingModal(null);
   };
