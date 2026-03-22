@@ -74,28 +74,26 @@ export default function ProfileTab({
           </div>
         </div>
 
-        {isEmpty && (
-          <div className="px-4 pb-3 space-y-3">
-            <div className="rounded-xl border border-gray-200 bg-white p-3">
-              <p className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
-              <p className="text-xs text-gray-500 mb-3">先挑 1 道想做的菜，今天完成它。</p>
-              <div className="flex gap-2">
-                <button className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
-                <button className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
-                <p className="text-xs text-gray-500">本周目标</p>
-                <p className="text-lg font-semibold text-dark mt-1">3 / 7 天</p>
-              </div>
-              <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
-                <p className="text-xs text-gray-500">连续打卡</p>
-                <p className="text-lg font-semibold text-dark mt-1">2 天</p>
-              </div>
+        <div className="px-4 pb-3 space-y-3">
+          <div className="rounded-xl border border-gray-200 bg-white p-3">
+            <p className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
+            <p className="text-xs text-gray-500 mb-3">先挑 1 道想做的菜，今天完成它。</p>
+            <div className="flex gap-2">
+              <button className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
+              <button className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
             </div>
           </div>
-        )}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
+              <p className="text-xs text-gray-500">本周目标</p>
+              <p className="text-lg font-semibold text-dark mt-1">3 / 7 天</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
+              <p className="text-xs text-gray-500">连续打卡</p>
+              <p className="text-lg font-semibold text-dark mt-1">2 天</p>
+            </div>
+          </div>
+        </div>
 
         <div className="border-t border-gray-200 px-4 pt-4">
           <div className="flex gap-8 border-b border-gray-200">
@@ -142,3 +140,4 @@ export default function ProfileTab({
     </div>
   );
 }
+
