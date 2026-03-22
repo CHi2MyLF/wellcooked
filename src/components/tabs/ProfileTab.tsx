@@ -11,6 +11,7 @@ interface ProfileTabProps {
   totalWantCount: number;
   cookableWantCount: number;
   topMissingItems: Array<{ recipeId: string; recipeName: string; missingCount: number }>;
+  isRecipesHydrated: boolean;
   weeklyCookedDays: number;
   weeklyGoal: number;
   consecutiveCookDays: number;
@@ -29,6 +30,7 @@ export default function ProfileTab({
   totalWantCount,
   cookableWantCount,
   topMissingItems,
+  isRecipesHydrated,
   weeklyCookedDays,
   weeklyGoal,
   consecutiveCookDays,
@@ -150,7 +152,16 @@ export default function ProfileTab({
             </div>
           </div>
 
-          {isEmpty ? (
+          {!isRecipesHydrated ? (
+            <div className="grid grid-cols-3 gap-3 pb-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="h-32 rounded-xl border border-gray-200 bg-gray-100" />
+                  <div className="h-4 bg-gray-100 rounded mt-2" />
+                </div>
+              ))}
+            </div>
+          ) : isEmpty ? (
             <div className="pb-4">
               <div className="rounded-xl py-10 text-center text-gray-400 bg-gray-50">
                 {profileSubTab === 'cooked' ? '还没有标记为我做过的菜谱' : '还没有标记为我想做的菜谱'}
@@ -166,7 +177,19 @@ export default function ProfileTab({
             <div className="grid grid-cols-3 gap-3 pb-4">
               {profileRecipes.map((item, index) => (
                 <button key={item.id} onClick={() => onViewSavedRecipe(item)} className="text-left">
-                  <div className={`h-32 rounded-xl border border-gray-200 ${index % 3 === 0 ? 'bg-[#f2ddd3]' : index % 3 === 1 ? 'bg-[#d9e2d3]' : 'bg-[#d4dceb]'}`} />
+                  <div className={`relative h-32 rounded-xl border border-gray-200 overflow-hidden ${index % 3 === 0 ? 'bg-[#f2ddd3]' : index % 3 === 1 ? 'bg-[#d9e2d3]' : 'bg-[#d4dceb]'}`}>
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                  </div>
                   <p className="text-base text-dark mt-2 truncate">{item.name}</p>
                 </button>
               ))}
@@ -177,5 +200,3 @@ export default function ProfileTab({
     </div>
   );
 }
-
-

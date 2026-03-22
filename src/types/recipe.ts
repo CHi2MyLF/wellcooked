@@ -6,6 +6,7 @@ export interface Recipe {
   steps: string[];
   tips: string[];
   ingredients?: string[];
+  image?: string;
   mainIngredient: string;
   createdAt: string;
   cookedAt?: string;

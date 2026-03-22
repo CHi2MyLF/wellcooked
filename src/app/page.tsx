@@ -280,6 +280,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [filteredRecipes, setFilteredRecipes] = useState(predefinedRecipes);
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+  const [isSavedRecipesHydrated, setIsSavedRecipesHydrated] = useState(false);
   const [showStapleIngredientsModal, setShowStapleIngredientsModal] = useState(false);
   const [showSearchHistoryModal, setShowSearchHistoryModal] = useState(false);
   const [editingStapleIngredients, setEditingStapleIngredients] = useState<string[]>([]);
@@ -358,6 +359,7 @@ export default function Home() {
         setSavedRecipes([]);
       }
     }
+    setIsSavedRecipesHydrated(true);
   }, []);
 
   // 保存菜谱到本地存储
@@ -586,6 +588,7 @@ export default function Home() {
         steps: parsedRecipe.steps,
         tips: parsedRecipe.tips || [],
         ingredients: splitIngredientText(parsedRecipe.ingredients),
+        image: typeof parsedRecipe.image === 'string' ? parsedRecipe.image : undefined,
         mainIngredient: ingredientInput,
         createdAt: new Date().toISOString()
       };
@@ -958,7 +961,17 @@ export default function Home() {
                   </div>
 
                   <div className="p-4">
-                    {savedRecipes.length === 0 ? (
+                    {!isSavedRecipesHydrated ? (
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                          <div key={index} className="rounded-xl border border-gray-200 bg-white p-4 animate-pulse">
+                            <div className="h-5 w-2/3 bg-gray-200 rounded mb-3" />
+                            <div className="h-4 w-full bg-gray-100 rounded mb-2" />
+                            <div className="h-4 w-5/6 bg-gray-100 rounded" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : savedRecipes.length === 0 ? (
                       <div className="rounded-xl py-10 text-center text-gray-500 bg-gray-50">
                         还没有保存的菜谱，生成一个菜谱试试吧！
                       </div>
@@ -1015,6 +1028,7 @@ export default function Home() {
                 totalWantCount={totalWantCount}
                 cookableWantCount={cookableWantCount}
                 topMissingItems={topMissingItems}
+                isRecipesHydrated={isSavedRecipesHydrated}
                 weeklyCookedDays={weeklyCookStats.cookedDays}
                 weeklyGoal={weeklyCookStats.weekGoal}
                 consecutiveCookDays={consecutiveCookDays}
