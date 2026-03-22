@@ -804,6 +804,15 @@ export default function Home() {
     }
   };
 
+  const addRecipeToWantToCook = (recipeId: string) => {
+    setSavedRecipes((prev) =>
+      prev.map((rec) => (rec.id === recipeId ? { ...rec, isWantToCook: true } : rec)),
+    );
+    if (recipe && recipe.id === recipeId) {
+      setRecipe({ ...recipe, isWantToCook: true });
+    }
+  };
+
   // 标记做过
   const toggleCooked = (recipeId: string) => {
     const rec = savedRecipes.find(r => r.id === recipeId) || (recipe?.id === recipeId ? recipe : undefined);
@@ -1233,6 +1242,14 @@ export default function Home() {
                         >
                           查看详情
                         </button>
+                        {!item.isWantToCook && (
+                          <button
+                            onClick={() => addRecipeToWantToCook(item.id)}
+                            className="text-sm text-dark hover:underline"
+                          >
+                            加入想做
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
