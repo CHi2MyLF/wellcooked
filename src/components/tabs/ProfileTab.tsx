@@ -9,6 +9,8 @@ interface ProfileTabProps {
   profileRecipes: Recipe[];
   totalCookedCount: number;
   totalWantCount: number;
+  cookableWantCount: number;
+  topMissingItems: Array<{ recipeId: string; recipeName: string; missingCount: number }>;
   weeklyCookedDays: number;
   weeklyGoal: number;
   consecutiveCookDays: number;
@@ -25,6 +27,8 @@ export default function ProfileTab({
   profileRecipes,
   totalCookedCount,
   totalWantCount,
+  cookableWantCount,
+  topMissingItems,
   weeklyCookedDays,
   weeklyGoal,
   consecutiveCookDays,
@@ -90,6 +94,18 @@ export default function ProfileTab({
           <div className="rounded-xl border border-gray-200 bg-white p-3">
             <p className="text-sm font-semibold text-dark mb-2">今日做饭计划</p>
             <p className="text-xs text-gray-500 mb-3">先挑 1 道想做的菜，今天完成它。</p>
+            {totalWantCount > 0 ? (
+              <div className="mb-3 rounded-lg bg-[#f6f8fb] px-2.5 py-2">
+                <p className="text-xs text-gray-600">可直接做 {cookableWantCount} / {totalWantCount} 道</p>
+                {topMissingItems.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    优先补料：{topMissingItems.map((item) => `${item.recipeName}(缺${item.missingCount})`).join('、')}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 mb-3">添加想做菜谱后，会自动提示可做菜和缺料清单。</p>
+            )}
             <div className="flex gap-2">
               <button onClick={onOpenGenerateTab} className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
               <button onClick={onOpenStapleIngredientsModal} className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
@@ -161,4 +177,5 @@ export default function ProfileTab({
     </div>
   );
 }
+
 

@@ -104,6 +104,27 @@ const getConsecutiveCookedDays = (recipes: Recipe[]) => {
   return streak;
 };
 
+const splitIngredientText = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+  if (typeof value !== 'string') return [];
+  return value
+    .split(/[，,、;；/\s|]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const normalizeIngredientToken = (value: string) => value.trim().toLowerCase();
+
+const getRecipeMissingIngredients = (recipe: Recipe, stapleSet: Set<string>) => {
+  const rawIngredients = recipe.ingredients?.length ? recipe.ingredients : [recipe.mainIngredient];
+  const normalized = Array.from(new Set(rawIngredients.map(normalizeIngredientToken).filter(Boolean)));
+  return normalized.filter((item) => !stapleSet.has(item));
+};
+
 export default function Home() {
   // 预设菜谱数据
   const predefinedRecipes: PredefinedRecipe[] = [
@@ -326,6 +347,7 @@ export default function Home() {
           if (!exists) {
             acc.push({
               ...current,
+              ingredients: current.ingredients?.length ? current.ingredients : [current.mainIngredient].filter(Boolean),
               cookedAt: current.cookedAt || (current.isCooked ? current.createdAt : undefined),
             });
           }
@@ -563,6 +585,7 @@ export default function Home() {
         time: parsedRecipe.cookingTime,
         steps: parsedRecipe.steps,
         tips: parsedRecipe.tips || [],
+        ingredients: splitIngredientText(parsedRecipe.ingredients),
         mainIngredient: ingredientInput,
         createdAt: new Date().toISOString()
       };
@@ -740,6 +763,20 @@ export default function Home() {
   const wantToCookRecipes = savedRecipes.filter(recipe => recipe.isWantToCook);
   const totalCookedCount = cookedRecipes.length;
   const totalWantCount = wantToCookRecipes.length;
+  const stapleSet = new Set(stapleIngredients.map(normalizeIngredientToken).filter(Boolean));
+  const wantCookMatchList = wantToCookRecipes.map((item) => {
+    const missingIngredients = getRecipeMissingIngredients(item, stapleSet);
+    return {
+      recipeId: item.id,
+      recipeName: item.name,
+      missingCount: missingIngredients.length,
+    };
+  });
+  const cookableWantCount = wantCookMatchList.filter((item) => item.missingCount === 0).length;
+  const topMissingItems = wantCookMatchList
+    .filter((item) => item.missingCount > 0)
+    .sort((a, b) => a.missingCount - b.missingCount)
+    .slice(0, 2);
   const weeklyCookStats = getWeeklyCookedDays(cookedRecipes, weeklyGoal);
   const consecutiveCookDays = getConsecutiveCookedDays(cookedRecipes);
   const profileRecipes = profileSubTab === 'cooked' ? cookedRecipes : wantToCookRecipes;
@@ -976,6 +1013,8 @@ export default function Home() {
                 profileRecipes={profileRecipes}
                 totalCookedCount={totalCookedCount}
                 totalWantCount={totalWantCount}
+                cookableWantCount={cookableWantCount}
+                topMissingItems={topMissingItems}
                 weeklyCookedDays={weeklyCookStats.cookedDays}
                 weeklyGoal={weeklyCookStats.weekGoal}
                 consecutiveCookDays={consecutiveCookDays}

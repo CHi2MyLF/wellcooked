@@ -5,6 +5,7 @@ export interface Recipe {
   time: string;
   steps: string[];
   tips: string[];
+  ingredients?: string[];
   mainIngredient: string;
   createdAt: string;
   cookedAt?: string;
