@@ -99,126 +99,219 @@ html {
 /* 烹饪动画 */
 .cooking-animation {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 112px;
+  height: 112px;
 }
 
 .pan {
   position: relative;
-  width: 80px;
-  height: 35px;
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  border-radius: 20px 20px 5px 5px;
-  animation: panShake 1s ease-in-out infinite;
-  margin-top: 20px;
+  width: 112px;
+  height: 112px;
+  animation: potSimmer 2.4s ease-in-out infinite;
+  transform-origin: center 70%;
   transition: transform 0.3s ease;
 }
 
-.pan::before {
-  content: '';
+.stove-glow {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(135deg, #357ABD 0%, #2A64A8 100%);
-  border-radius: 0 0 5px 5px;
+  left: 50%;
+  bottom: 10px;
+  width: 72px;
+  height: 20px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 190, 92, 0.95) 0 26%, rgba(255, 122, 69, 0.7) 27%, rgba(255, 122, 69, 0.2) 58%, transparent 74%),
+    radial-gradient(circle at 50% 100%, rgba(247, 102, 56, 0.3), transparent 72%);
+  transform: translateX(-50%);
+  filter: blur(1px);
+  animation: flamePulse 1.6s ease-in-out infinite;
+}
+
+.pan-lid {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 68px;
+  height: 28px;
+  border-radius: 999px 999px 14px 14px;
+  background: linear-gradient(180deg, #f5eee6 0%, #e2d6c6 58%, #cdbca6 100%);
+  border: 1px solid rgba(140, 112, 82, 0.2);
+  box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.5);
+  transform: translateX(-50%);
+  transition: transform 0.3s ease;
+}
+
+.lid-knob {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 18px;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b97d57 0%, #8f5a3a 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 239, 222, 0.35);
+  transform: translateX(-50%);
+}
+
+.pan-body {
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  width: 88px;
+  height: 54px;
+  border-radius: 24px 24px 30px 30px;
+  background: linear-gradient(180deg, #f0a46a 0%, #d97746 48%, #b85b2e 100%);
+  border: 1px solid rgba(124, 61, 33, 0.18);
+  box-shadow:
+    inset 0 5px 10px rgba(255, 230, 205, 0.38),
+    inset 0 -6px 10px rgba(124, 61, 33, 0.18),
+    0 8px 16px rgba(178, 105, 66, 0.18);
+  transform: translateX(-50%);
+  transition: transform 0.3s ease;
+}
+
+.pan-rim {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 236, 214, 0.95) 0%, rgba(255, 205, 162, 0.75) 100%);
+}
+
+.pan-shine {
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  width: 20px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 239, 219, 0.55) 0%, rgba(255, 239, 219, 0.08) 100%);
+  transform: rotate(14deg);
 }
 
 .pan-handle {
   position: absolute;
-  right: -25px;
-  top: 10px;
-  width: 25px;
-  height: 12px;
-  background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
-  border-radius: 0 5px 5px 0;
+  top: 58px;
+  width: 14px;
+  height: 22px;
+  background: linear-gradient(180deg, #906447 0%, #6f4d35 100%);
+  border: 1px solid rgba(87, 57, 37, 0.24);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 227, 0.35);
   transition: transform 0.3s ease;
 }
 
-.food {
+.pan-handle-left {
   position: absolute;
   left: 10px;
-  top: -15px;
-  width: 60px;
-  height: 22px;
-  background: linear-gradient(135deg, #50E3C2 0%, #3DD1B4 100%);
-  border-radius: 5px;
-  animation: foodFlip 2s ease-in-out infinite;
-  transition: all 0.3s ease;
+  transform: rotate(-18deg);
+}
+
+.pan-handle-right {
+  right: 10px;
+  transform: rotate(18deg);
+}
+
+.broth {
+  position: absolute;
+  left: 50%;
+  top: 45px;
+  width: 64px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: 999px 999px 16px 16px;
+  background:
+    radial-gradient(circle at 22% 45%, rgba(255, 236, 168, 0.55) 0 10%, transparent 11%),
+    radial-gradient(circle at 70% 35%, rgba(255, 246, 214, 0.45) 0 8%, transparent 9%),
+    linear-gradient(180deg, #ffe099 0%, #f3a741 100%);
+  transform: translateX(-50%);
+  transition: transform 0.3s ease;
+}
+
+.bubble {
+  position: absolute;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 249, 226, 0.75);
+  animation: bubbleRise 1.6s ease-in-out infinite;
+}
+
+.bubble-1 {
+  left: 14px;
+  animation-delay: 0s;
+}
+
+.bubble-2 {
+  left: 29px;
+  width: 6px;
+  height: 6px;
+  animation-delay: 0.4s;
+}
+
+.bubble-3 {
+  left: 46px;
+  width: 7px;
+  height: 7px;
+  animation-delay: 0.8s;
 }
 
 .steam {
   position: absolute;
-  left: 20px;
-  top: -20px;
-  width: 40px;
-  height: 40px;
+  left: 50%;
+  top: 0;
+  width: 68px;
+  height: 46px;
+  transform: translateX(-50%);
   transition: all 0.3s ease;
 }
 
 .steam-line {
   position: absolute;
-  width: 4px;
-  height: 15px;
-  background: rgba(74, 144, 226, 0.3);
-  border-radius: 2px;
+  bottom: 0;
+  width: 10px;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(229, 236, 244, 0.12) 100%);
+  border-radius: 999px;
+  filter: blur(0.4px);
   animation: steamRise 1.5s ease-in-out infinite;
 }
 
 .steam-line:nth-child(1) {
-  left: 5px;
+  left: 10px;
   animation-delay: 0s;
 }
 
 .steam-line:nth-child(2) {
-  left: 13px;
+  left: 26px;
   animation-delay: 0.3s;
 }
 
 .steam-line:nth-child(3) {
-  left: 21px;
+  left: 42px;
   animation-delay: 0.6s;
 }
 
 .steam-line:nth-child(4) {
-  left: 29px;
+  left: 26px;
   animation-delay: 0.9s;
 }
 
-.steam-line:nth-child(5) {
-  left: 37px;
-  animation-delay: 1.2s;
-}
-
-.steam-line:nth-child(6) {
-  left: 17px;
-  animation-delay: 0.45s;
-}
-
-.steam-line:nth-child(7) {
-  left: 25px;
-  animation-delay: 0.75s;
-}
-
-@keyframes panShake {
+@keyframes potSimmer {
   0%, 100% {
-    transform: rotate(0deg);
+    transform: translateY(0) rotate(0deg);
   }
   25% {
-    transform: rotate(1deg);
-  }
-  75% {
-    transform: rotate(-1deg);
-  }
-}
-
-@keyframes foodFlip {
-  0%, 100% {
-    transform: rotate(0deg) translateY(0);
+    transform: translateY(-1px) rotate(-1deg);
   }
   50% {
-    transform: rotate(180deg) translateY(-5px);
+    transform: translateY(0) rotate(1deg);
+  }
+  75% {
+    transform: translateY(-1px) rotate(-0.5deg);
   }
 }
 
@@ -228,15 +321,40 @@ html {
     opacity: 0;
   }
   50% {
-    opacity: 1;
+    opacity: 0.8;
   }
   100% {
-    transform: translateY(-20px) scale(1.2);
+    transform: translateY(-24px) scale(1.15) translateX(2px);
     opacity: 0;
   }
 }
 
-/* 音波动画 */
+@keyframes flamePulse {
+  0%, 100% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.82;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(1.08) scaleY(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.25;
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-12px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* ?????? */
 .wave-animation {
   height: 20px;
 }

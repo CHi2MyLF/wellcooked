@@ -635,7 +635,7 @@ export default function Home() {
       const controller = new AbortController();
       const signal = controller.signal;
       
-      const response = await fetch('http://localhost:3101/api/generate-recipe', {
+      const response = await fetch('/api/generate-recipe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -648,6 +648,10 @@ export default function Home() {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        showAppError(data.error || '????????????', true);
+        return;
+      }
 
       // 检查是否有错误
       if (data.error) {
@@ -656,24 +660,14 @@ export default function Home() {
       }
 
       // 解析AI返回的菜谱
-      const recipeData = data.choices[0].message.content;
-      let parsedRecipe;
+      // ?????????? JSON
+      const parsedRecipe = data;
 
-      try {
-        parsedRecipe = JSON.parse(recipeData);
-      } catch (parseError) {
-        console.error('解析菜谱失败:', parseError);
-        showAppError('生成菜谱失败，请稍后重试', true);
-        return;
-      }
-
-      // 检查解析后的菜谱是否有错误
       if (parsedRecipe.error) {
         showAppError(parsedRecipe.error, true);
         return;
       }
 
-      // 创建新菜谱对象
       const newRecipe: Recipe = {
         id: Date.now().toString(),
         name: parsedRecipe.name,

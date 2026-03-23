@@ -108,13 +108,23 @@ export default function GenerateTab({
         {isLoading && (
           <div className="flex flex-col items-center justify-center gap-3 mt-4">
             <div className="cooking-animation cursor-pointer" onClick={onToggleAnimation}>
-              <div className={`pan ${isAnimationClicked ? 'scale-125' : ''}`}>
-                <div className={`pan-handle ${isAnimationClicked ? 'scale-110 rotate-12' : ''}`}></div>
-                <div className={`food ${isAnimationClicked ? 'scale-120 rotate-180' : ''}`}></div>
-                <div className={`steam ${isAnimationClicked ? 'opacity-100 scale-125' : ''}`}>
-                  <div className="steam-line"></div>
-                  <div className="steam-line"></div>
-                  <div className="steam-line"></div>
+              <div className={`pan ${isAnimationClicked ? 'scale-110' : ''}`}>
+                <div className="stove-glow"></div>
+                <div className={`pan-lid ${isAnimationClicked ? '-translate-y-1 rotate-2' : ''}`}>
+                  <span className="lid-knob"></span>
+                </div>
+                <div className={`pan-body ${isAnimationClicked ? 'rotate-1' : ''}`}>
+                  <span className="pan-rim"></span>
+                  <span className="pan-shine"></span>
+                  <span className="pan-handle pan-handle-left"></span>
+                  <span className="pan-handle pan-handle-right"></span>
+                </div>
+                <div className={`broth ${isAnimationClicked ? 'scale-105' : ''}`}>
+                  <span className="bubble bubble-1"></span>
+                  <span className="bubble bubble-2"></span>
+                  <span className="bubble bubble-3"></span>
+                </div>
+                <div className={`steam ${isAnimationClicked ? 'opacity-100 scale-110' : ''}`}>
                   <div className="steam-line"></div>
                   <div className="steam-line"></div>
                   <div className="steam-line"></div>
