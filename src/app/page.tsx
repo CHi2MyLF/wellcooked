@@ -26,6 +26,12 @@ const defaultProfileFunnelStats: ProfileFunnelStats = {
   updatedAt: '',
 };
 
+interface SyncPayload {
+  savedRecipes: Recipe[];
+  stapleIngredients: string[];
+  profileFunnelStats: ProfileFunnelStats;
+}
+
 const normalizeSavedRecipes = (recipes: Recipe[]) => {
   const parseCreatedAt = (value?: string) => {
     if (!value) return 0;
@@ -327,6 +333,11 @@ export default function Home() {
   const [isSavedRecipesHydrated, setIsSavedRecipesHydrated] = useState(false);
   const [showStapleIngredientsModal, setShowStapleIngredientsModal] = useState(false);
   const [showSearchHistoryModal, setShowSearchHistoryModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncAccountId, setSyncAccountId] = useState('');
+  const [syncPasscode, setSyncPasscode] = useState('');
+  const [syncMessage, setSyncMessage] = useState('');
+  const [isSyncLoading, setIsSyncLoading] = useState(false);
   const [editingStapleIngredients, setEditingStapleIngredients] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('generate');
   const [profileSubTab, setProfileSubTab] = useState<'cooked' | 'want'>('cooked');
@@ -426,6 +437,13 @@ export default function Home() {
       });
     } catch {
       setProfileFunnelStats(defaultProfileFunnelStats);
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedAccountId = localStorage.getItem('syncAccountId');
+    if (savedAccountId) {
+      setSyncAccountId(savedAccountId);
     }
   }, []);
 
@@ -776,6 +794,89 @@ export default function Home() {
     setProfileSubTab(tab);
     if (tab === 'want') {
       trackFunnelStep('wantTabClickCount');
+    }
+  };
+
+  const handleSyncPull = async () => {
+    if (!syncAccountId.trim() || !syncPasscode.trim()) {
+      setSyncMessage('请输入同步账号和同步口令');
+      return;
+    }
+    try {
+      setIsSyncLoading(true);
+      setSyncMessage('');
+      const response = await fetch('/api/sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'pull',
+          accountId: syncAccountId.trim(),
+          passcode: syncPasscode.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSyncMessage(data.error || '拉取失败，请稍后重试');
+        return;
+      }
+      const payload = (data.payload || {}) as Partial<SyncPayload>;
+      const syncedRecipes = Array.isArray(payload.savedRecipes) ? normalizeSavedRecipes(payload.savedRecipes) : [];
+      const syncedStaples = Array.isArray(payload.stapleIngredients) ? payload.stapleIngredients : [];
+      const syncedFunnel = payload.profileFunnelStats || defaultProfileFunnelStats;
+      setSavedRecipes(syncedRecipes);
+      setStapleIngredients(syncedStaples);
+      setProfileFunnelStats({
+        profileEntryCount: Number(syncedFunnel.profileEntryCount) || 0,
+        wantTabClickCount: Number(syncedFunnel.wantTabClickCount) || 0,
+        wantRecipeOpenCount: Number(syncedFunnel.wantRecipeOpenCount) || 0,
+        cookedMarkCount: Number(syncedFunnel.cookedMarkCount) || 0,
+        updatedAt: typeof syncedFunnel.updatedAt === 'string' ? syncedFunnel.updatedAt : '',
+      });
+      localStorage.setItem('syncAccountId', syncAccountId.trim());
+      localStorage.setItem('savedRecipes', JSON.stringify(syncedRecipes));
+      localStorage.setItem('stapleIngredients', JSON.stringify(syncedStaples));
+      setSyncMessage(`拉取成功（${new Date(data.updatedAt || Date.now()).toLocaleString()}）`);
+    } catch {
+      setSyncMessage('拉取失败，请检查网络后重试');
+    } finally {
+      setIsSyncLoading(false);
+    }
+  };
+
+  const handleSyncPush = async () => {
+    if (!syncAccountId.trim() || !syncPasscode.trim()) {
+      setSyncMessage('请输入同步账号和同步口令');
+      return;
+    }
+    try {
+      setIsSyncLoading(true);
+      setSyncMessage('');
+      const payload: SyncPayload = {
+        savedRecipes: normalizeSavedRecipes(savedRecipes),
+        stapleIngredients,
+        profileFunnelStats,
+      };
+      const response = await fetch('/api/sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'push',
+          accountId: syncAccountId.trim(),
+          passcode: syncPasscode.trim(),
+          payload,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSyncMessage(data.error || '推送失败，请稍后重试');
+        return;
+      }
+      localStorage.setItem('syncAccountId', syncAccountId.trim());
+      setSyncMessage(`推送成功（${new Date(data.updatedAt || Date.now()).toLocaleString()}）`);
+    } catch {
+      setSyncMessage('推送失败，请检查网络后重试');
+    } finally {
+      setIsSyncLoading(false);
     }
   };
 
@@ -1189,6 +1290,7 @@ export default function Home() {
                 onOpenStapleIngredientsModal={openStapleIngredientsModal}
                 onOpenGenerateTab={openGenerateFromProfile}
                 onOpenManageRecipes={openSavedForManage}
+                onOpenSyncModal={() => setShowSyncModal(true)}
               />
             )}
           </>
@@ -1237,6 +1339,55 @@ export default function Home() {
                   className="flex-1 py-2 border border-dark rounded-md hover:bg-gray-100"
                 >
                   跳过
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSyncModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white border border-gray-200 shadow-sm p-6 rounded-[22px] max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-dark font-serif">多端同步</h3>
+                <button
+                  onClick={() => setShowSyncModal(false)}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  关闭
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">同一个同步账号 + 同一个口令，可在多设备同步想做/做过/打卡数据。</p>
+              <div className="space-y-3">
+                <input
+                  value={syncAccountId}
+                  onChange={(event) => setSyncAccountId(event.target.value)}
+                  placeholder="同步账号（例如：chef001）"
+                  className="w-full rounded-xl px-3 py-2 border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <input
+                  type="password"
+                  value={syncPasscode}
+                  onChange={(event) => setSyncPasscode(event.target.value)}
+                  placeholder="同步口令（至少 6 位）"
+                  className="w-full rounded-xl px-3 py-2 border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              {syncMessage && <p className="text-xs text-gray-600 mt-3">{syncMessage}</p>}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <button
+                  onClick={handleSyncPull}
+                  disabled={isSyncLoading}
+                  className="rounded-lg border border-gray-300 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                >
+                  {isSyncLoading ? '处理中...' : '登录并拉取'}
+                </button>
+                <button
+                  onClick={handleSyncPush}
+                  disabled={isSyncLoading}
+                  className="rounded-lg bg-dark text-white py-2 text-sm hover:opacity-90 disabled:opacity-60"
+                >
+                  {isSyncLoading ? '处理中...' : '推送当前数据'}
                 </button>
               </div>
             </div>

@@ -28,6 +28,7 @@ const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] 
   const onOpenStapleIngredientsModal = vi.fn();
   const onOpenGenerateTab = vi.fn();
   const onOpenManageRecipes = vi.fn();
+  const onOpenSyncModal = vi.fn();
 
   render(
     <ProfileTab
@@ -63,6 +64,7 @@ const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] 
       onOpenStapleIngredientsModal={onOpenStapleIngredientsModal}
       onOpenGenerateTab={onOpenGenerateTab}
       onOpenManageRecipes={onOpenManageRecipes}
+      onOpenSyncModal={onOpenSyncModal}
     />,
   );
 
@@ -73,6 +75,7 @@ const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] 
     onOpenStapleIngredientsModal,
     onOpenGenerateTab,
     onOpenManageRecipes,
+    onOpenSyncModal,
   };
 };
 
@@ -129,5 +132,11 @@ describe('ProfileTab', () => {
     const { onOpenGenerateTab } = renderProfileTab({ profileSubTab: 'cooked', profileRecipes: [] });
     fireEvent.click(screen.getByRole('button', { name: '去添加第一道想做菜谱' }));
     expect(onOpenGenerateTab).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens sync modal from plan card', () => {
+    const { onOpenSyncModal } = renderProfileTab({ profileSubTab: 'cooked' });
+    fireEvent.click(screen.getByRole('button', { name: '多端同步' }));
+    expect(onOpenSyncModal).toHaveBeenCalledTimes(1);
   });
 });

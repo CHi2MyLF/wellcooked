@@ -28,6 +28,7 @@ interface ProfileTabProps {
   onOpenStapleIngredientsModal: () => void;
   onOpenGenerateTab: () => void;
   onOpenManageRecipes: () => void;
+  onOpenSyncModal: () => void;
 }
 
 export default function ProfileTab({
@@ -49,6 +50,7 @@ export default function ProfileTab({
   onOpenStapleIngredientsModal,
   onOpenGenerateTab,
   onOpenManageRecipes,
+  onOpenSyncModal,
 }: ProfileTabProps) {
   const isEmpty = profileRecipes.length === 0;
   const toRateText = (value: number, base: number) => (base > 0 ? `${Math.round((value / base) * 100)}%` : '--');
@@ -124,6 +126,12 @@ export default function ProfileTab({
               <button onClick={onOpenGenerateTab} className="flex-1 rounded-lg bg-dark text-white text-sm py-2">去找菜谱</button>
               <button onClick={onOpenStapleIngredientsModal} className="flex-1 rounded-lg border border-gray-300 text-sm py-2">管理食材</button>
             </div>
+            <button
+              onClick={onOpenSyncModal}
+              className="w-full mt-2 rounded-lg border border-gray-300 text-sm py-2 text-gray-700 hover:bg-white transition-colors"
+            >
+              多端同步
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-gray-200 bg-[#f6f8fb] p-3">
