@@ -16,14 +16,19 @@ const recipe: Recipe = {
   createdAt: '2026-03-22T00:00:00.000Z',
 };
 
-const renderProfileTab = (profileSubTab: 'cooked' | 'want' = 'cooked') => {
+type RenderOptions = {
+  profileSubTab?: 'cooked' | 'want';
+  profileRecipes?: Recipe[];
+};
+
+const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] }: RenderOptions = {}) => {
   const onProfileSubTabChange = vi.fn();
   const onViewSavedRecipe = vi.fn();
   render(
     <ProfileTab
       profileSubTab={profileSubTab}
       onProfileSubTabChange={onProfileSubTabChange}
-      profileRecipes={[recipe]}
+      profileRecipes={profileRecipes}
       totalCookedCount={1}
       totalWantCount={1}
       cookableWantCount={1}
@@ -60,7 +65,7 @@ const renderProfileTab = (profileSubTab: 'cooked' | 'want' = 'cooked') => {
 
 describe('ProfileTab', () => {
   it('keeps today plan card visible while switching tabs', () => {
-    const { onProfileSubTabChange } = renderProfileTab('cooked');
+    const { onProfileSubTabChange } = renderProfileTab({ profileSubTab: 'cooked' });
     expect(screen.getByTestId('today-plan-title')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('profile-tab-want'));
     expect(onProfileSubTabChange).toHaveBeenCalledWith('want');
@@ -68,14 +73,25 @@ describe('ProfileTab', () => {
   });
 
   it('calls onViewSavedRecipe with source = profile_want under want tab', () => {
-    const { onViewSavedRecipe } = renderProfileTab('want');
+    const { onViewSavedRecipe } = renderProfileTab({ profileSubTab: 'want' });
     fireEvent.click(screen.getByTestId('profile-recipe-r1'));
     expect(onViewSavedRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }), 'profile_want');
   });
 
   it('calls onViewSavedRecipe with source = profile_cooked under cooked tab', () => {
-    const { onViewSavedRecipe } = renderProfileTab('cooked');
+    const { onViewSavedRecipe } = renderProfileTab({ profileSubTab: 'cooked' });
     fireEvent.click(screen.getByTestId('profile-recipe-r1'));
     expect(onViewSavedRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }), 'profile_cooked');
+  });
+
+  it('renders empty message for want tab when no recipes', () => {
+    renderProfileTab({ profileSubTab: 'want', profileRecipes: [] });
+    expect(screen.getByText('还没有标记为我想做的菜谱')).toBeInTheDocument();
+  });
+
+  it('renders trend and funnel sections', () => {
+    renderProfileTab({ profileSubTab: 'cooked' });
+    expect(screen.getByText('行为漏斗')).toBeInTheDocument();
+    expect(screen.getByText('近 7 天做饭趋势')).toBeInTheDocument();
   });
 });

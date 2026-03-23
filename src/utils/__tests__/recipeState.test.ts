@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 
 import type { Recipe } from '@/types/recipe';
 import { clearCookedState, markCookedState, setWantToCookState, toggleWantToCookState } from '@/utils/recipeState';
 
 const baseRecipe: Recipe = {
   id: '1',
-  name: '测试菜谱',
-  difficulty: '简单',
-  time: '10分钟',
+  name: 'Test Recipe',
+  difficulty: 'easy',
+  time: '10m',
   steps: ['step1'],
   tips: [],
-  mainIngredient: '鸡蛋',
+  mainIngredient: 'egg',
   createdAt: '2026-03-22T00:00:00.000Z',
   isWantToCook: false,
   isCooked: false,
@@ -34,11 +34,19 @@ describe('recipeState helpers', () => {
     expect(next.cookedAt).toBeUndefined();
   });
 
-  it('marks recipe cooked with optional rating and comment', () => {
-    const next = markCookedState(baseRecipe, '2026-03-22T08:00:00.000Z', 5, '很好吃');
+  it('marks recipe cooked with rating and comment', () => {
+    const next = markCookedState(baseRecipe, '2026-03-22T08:00:00.000Z', 5, 'great');
     expect(next.isCooked).toBe(true);
     expect(next.cookedAt).toBe('2026-03-22T08:00:00.000Z');
     expect(next.rating).toBe(5);
-    expect(next.comment).toBe('很好吃');
+    expect(next.comment).toBe('great');
+  });
+
+  it('marks recipe cooked without optional fields', () => {
+    const next = markCookedState(baseRecipe, '2026-03-22T08:00:00.000Z');
+    expect(next.isCooked).toBe(true);
+    expect(next.cookedAt).toBe('2026-03-22T08:00:00.000Z');
+    expect(next.rating).toBeUndefined();
+    expect(next.comment).toBeUndefined();
   });
 });
