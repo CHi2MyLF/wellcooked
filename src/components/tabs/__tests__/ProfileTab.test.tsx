@@ -24,6 +24,11 @@ type RenderOptions = {
 const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] }: RenderOptions = {}) => {
   const onProfileSubTabChange = vi.fn();
   const onViewSavedRecipe = vi.fn();
+  const onOpenSearchHistory = vi.fn();
+  const onOpenStapleIngredientsModal = vi.fn();
+  const onOpenGenerateTab = vi.fn();
+  const onOpenManageRecipes = vi.fn();
+
   render(
     <ProfileTab
       profileSubTab={profileSubTab}
@@ -54,13 +59,21 @@ const renderProfileTab = ({ profileSubTab = 'cooked', profileRecipes = [recipe] 
         updatedAt: '',
       }}
       onViewSavedRecipe={onViewSavedRecipe}
-      onOpenSearchHistory={vi.fn()}
-      onOpenStapleIngredientsModal={vi.fn()}
-      onOpenGenerateTab={vi.fn()}
-      onOpenManageRecipes={vi.fn()}
+      onOpenSearchHistory={onOpenSearchHistory}
+      onOpenStapleIngredientsModal={onOpenStapleIngredientsModal}
+      onOpenGenerateTab={onOpenGenerateTab}
+      onOpenManageRecipes={onOpenManageRecipes}
     />,
   );
-  return { onProfileSubTabChange, onViewSavedRecipe };
+
+  return {
+    onProfileSubTabChange,
+    onViewSavedRecipe,
+    onOpenSearchHistory,
+    onOpenStapleIngredientsModal,
+    onOpenGenerateTab,
+    onOpenManageRecipes,
+  };
 };
 
 describe('ProfileTab', () => {
@@ -93,5 +106,28 @@ describe('ProfileTab', () => {
     renderProfileTab({ profileSubTab: 'cooked' });
     expect(screen.getByText('行为漏斗')).toBeInTheDocument();
     expect(screen.getByText('近 7 天做饭趋势')).toBeInTheDocument();
+  });
+
+  it('triggers top action buttons', () => {
+    const { onOpenSearchHistory, onOpenStapleIngredientsModal } = renderProfileTab({ profileSubTab: 'cooked' });
+    fireEvent.click(screen.getByRole('button', { name: '搜索记录' }));
+    fireEvent.click(screen.getByRole('button', { name: '常备食材' }));
+    expect(onOpenSearchHistory).toHaveBeenCalledTimes(1);
+    expect(onOpenStapleIngredientsModal).toHaveBeenCalled();
+  });
+
+  it('triggers plan and list action buttons', () => {
+    const { onOpenGenerateTab, onOpenManageRecipes } = renderProfileTab({ profileSubTab: 'cooked' });
+    fireEvent.click(screen.getByRole('button', { name: '去找菜谱' }));
+    fireEvent.click(screen.getByRole('button', { name: '添加想做' }));
+    fireEvent.click(screen.getByRole('button', { name: '管理' }));
+    expect(onOpenGenerateTab).toHaveBeenCalled();
+    expect(onOpenManageRecipes).toHaveBeenCalledTimes(1);
+  });
+
+  it('empty state CTA opens generate tab', () => {
+    const { onOpenGenerateTab } = renderProfileTab({ profileSubTab: 'cooked', profileRecipes: [] });
+    fireEvent.click(screen.getByRole('button', { name: '去添加第一道想做菜谱' }));
+    expect(onOpenGenerateTab).toHaveBeenCalledTimes(1);
   });
 });
